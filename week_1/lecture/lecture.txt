@@ -18,6 +18,14 @@ Plan
 
 
 How Internet works
+Client & Servers
+Packets
+IP Address
+Routers
+ISP
+DNS
+TCP
+
 Backend
 Frontend
 ASP.NET
@@ -36,6 +44,214 @@ ASP.NET MVC
 
 
 How Internet works
+
+
+
+
+Internet is not like a cloud.
+Internet is like a postal service.
+
+When you send an email, watch a video,
+or load a webpage, you're not just 'using the internet'
+— you're sending a letter and receiving a package
+through an incredibly complex, global delivery system.
+
+Let's break down how that system works.
+
+
+Key Concept 1: Clients and Servers
+
+Every single interaction on the internet involves
+two main characters:
+
+- Client
+- Server
+
+Clients:
+
+- Your laptop
+- Your phone
+- Your smart TV
+- Your fridge
+
+Client is the one requesting information.
+
+Servers - powerful computers, usually in
+a data center, that store information and
+deliver it upon request.
+
+Example
+
+When you type www.google.com into your browser,
+your laptop (the client) is asking Google's
+servers for the Google homepage.
+
+
+Key Concept 2: Packets
+
+You don't send a whole, continuous stream of data.
+It's inefficient and if it got lost, you'd have to
+resend the whole thing.
+
+Instead, data is broken down into tiny,
+manageable pieces called Packets.
+Each packet contains a piece of the data, plus crucial
+information like where it came from and where it's going.
+
+
+
+Key Concept 3: IP Addresses
+
+How do these packets know where to go?
+Every device connected to the internet has a
+unique numeric label called an IP Address:
+
+Example: 192.168.1.1.
+
+Servers have IP addresses.
+When you type google.com, a system called DNS
+translates that name into Google's IP address.
+
+To see your own IP address:
+
+Mac: > ifconfig
+Win: > ipconfig
+
+
+
+Key Concept 4: Routers
+
+Packets don't fly directly from your laptop
+to a server in another country.
+They travel through special devices called Routers.
+
+A router is like a post office sorting facility.
+Its job is to look at the destination address on
+a packet (its IP address) and decide the best possible
+path to send it next.
+
+Packet travels from your laptop through:
+
+- Your home router.
+- Your Internet Service Provider router
+- Other bigger routers, hopping from router to
+router across the world until it reaches its destination.
+
+
+
+Key Concept 5: Internet Service Provider (ISP)
+
+Your gateway to this entire network is your
+Internet Service Provider — a company like Bell or Rogers.
+
+You connect to your ISP (via cable, fiber, or phone line),
+and they connect you to the global network of other ISPs
+and routers.
+
+
+
+Key Concept 6: DNS (The Domain Name System)
+
+We remember names, not numbers.
+It's easier to remember google.com than
+142.251.32.110.
+
+That's where DNS comes in.
+
+The Domain Name System (DNS) is the
+internet's phonebook.
+
+The very first thing your computer does when
+you type a website address is ask a DNS server:
+
+'Hey, what's the IP address for google.com?'
+
+The DNS server replies with the number.
+Now your computer knows where to send the request.
+
+This all happens in milliseconds.
+
+
+Key Concept 7: TCP (Transmission Control Protocol)
+
+How do we ensure all packets arrive and are put
+back in the correct order?
+
+This is handled by a set of rules called TCP.
+
+TCP:
+
+- Assigns numbers the packets
+E.g. #1, #2, #3, etc, so they can be reassembled in order
+
+- Requests acknowledgements
+The receiving server sends back a message
+saying 'I got packet #5!'
+
+- Handles retransmission
+If packet #6 doesn't arrive, the server says
+'Hey, I'm missing #6!' and TCP on the client resends it.
+
+
+
+Example
+
+- You type youtube.com and hit enter.
+
+- Your computer asks the DNS for YouTube's IP address. It gets it.
+192.168.1.2
+
+- Your browser requests a cat video. This request is broken into packets.
+#1, #2
+
+- Each packet is addressed to YouTube's IP and sent to your home router.
+#1 -> 192.168.1.2
+#2 -> 192.168.1.2
+
+- Each packet also has your address
+#1 -> 192.168.1.2 from 192.168.1.8
+#2 -> 192.168.1.2 from 192.168.1.8
+
+- Your router sends them to your ISP's router.
+
+- Your ISP's router passes them to routers across the internet,
+hopping them along the fastest path towards YouTube's servers.
+
+- YouTube's server receives the packets.
+#2, #1
+TCP on YouTube's server checks that all are present and
+reassembles them -> #1, #2
+
+- The server understands the request: 'Ah, you want the cat video!'
+
+- The video data is broken into new packets:
+#1, #2, #3
+
+- These packets have YouTube's IP address and your IP address:
+#1 -> 192.168.1.8 from 192.168.1.2
+#2 -> 192.168.1.8 from 192.168.1.2
+#3 -> 192.168.1.8 from 192.168.1.2
+
+- The packets are sent back through the network,
+following the same process in reverse.
+
+- Your computer receives the packets:
+#2, #3, #1
+
+- TCP checks them, reassembles them:
+#1, #2, #3
+
+- Finally your browser displays the cat video
+for you to enjoy.
+
+All of this happens in a fraction of a second
+
+
+
+
+
+
+Web Apps
 
 
 web app (web application) - a set of web pages, generated
@@ -272,13 +488,5 @@ the controller and renders it.
 
 
 
-
-
-
-
-
-
-
-
-
+Thank you
 
