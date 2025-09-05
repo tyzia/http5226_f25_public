@@ -1,0 +1,284 @@
+
+
+
+
+
+
+Backend 2 (asp.net)
+
+
+
+
+
+
+
+
+Plan
+
+
+
+How Internet works
+Backend
+Frontend
+ASP.NET
+ASP.NET MVC
+
+
+
+
+
+
+
+
+
+
+
+
+
+How Internet works
+
+
+web app (web application) - a set of web pages, generated
+in response to user requests.
+
+Example:
+
+google.com
+linkedin.com
+github.com
+
+
+Web app consists of:
+
+- clients (computers, mobile phones, tablets, fridge)
+- server (returns the pages requested by clients)
+
+Clients and servers are connected through network.
+Clients use special software to make requests - browsers.
+
+User types URL of the website.
+
+URL = Uniform Resource Locator
+URL consists mainly of:
+
+- protocol
+- domain name
+- path
+- file name
+
+Demo: 1.png
+
+A web page can be:
+
+- static (content doesn't change, *.html)
+- dynamic (content changes)
+
+HTML = Hypertext Markup Language - used to "code" web pages.
+
+
+
+How a static web page works:
+
+Demo: 2.png
+
+Example: super.com/index.html
+
+- browser sends a request to the server indicating the page (index.html)
+This is HTTP request.
+
+- server receives the request, finds index.html file and sends it back.
+This is HTTP response.
+
+- browser receives index.html and renders (displays) it.
+
+
+How a dynamic web page works:
+
+Demo: 3.png
+
+Example: super.com/song/87
+
+- browser sends a request to the server indicating the path /song/87
+This is HTTP request.
+
+- server receives the request, finds corresponding C# method for /song/87
+and passes control to asp.net engine.
+This is called IIS = Internet Information Services
+
+- when asp.net engine receives the request, it makes a query to Database
+with parameters "song" and "87".
+This is called application server
+
+- Database server finds data related to "song" and "87" and returns it
+back to asp.net engine.
+
+- asp.net generates HTML page for this request and sends it back.
+This is HTTP response.
+
+- browser receives html file and renders (displays) it.
+
+
+
+
+
+
+Backend
+
+
+In the above concepts Backend is the "server-side"
+of a web application. A combination of:
+
+- server
+- application logic (ASP.NET engine)
+- database
+
+All these work together to:
+
+- process user requests
+- execute business logic
+- manage data
+- generate dynamic responses
+
+
+Frontend / UI
+
+The frontend is the HTML, CSS, and JavaScript
+that are ultimately sent to the browser.
+
+It's the user interface that the browser renders
+and the user interacts with.
+
+Backend prepares what to show to the user.
+Frontend shows it to the user.
+
+The backend is critically important.
+It is the functional core of any modern web application.
+It is what transforms a website from a static content
+into a powerful tool.
+
+Without a backend, you would have no:
+
+Dynamic Content:
+
+- Personalized feeds (like on LinkedIn or GitHub)
+- search results (like on Google)
+- or user-specific data
+
+User Authentication & Authorization:
+
+- Logins
+- passwords
+- permissions to access certain content.
+
+The backend verifies who you are and what you're allowed to see.
+
+Data Management
+
+- The ability to create, read, update, and delete information
+
+Example
+
+- creating a new post,
+- updating your profile,
+- adding a song to a playlist.
+
+All this logic and data storage happens on the backend.
+
+Business Logic:
+
+- The rules that define how an application operates.
+
+Example
+
+- the logic for processing an order,
+- applying a discount coupon,
+
+Security:
+
+- It protects sensitive data.
+- Validates user input.
+
+
+
+
+
+
+
+ASP.NET
+
+
+
+ASP.NET is a free, open-source, server-side web application
+framework designed by Microsoft.
+
+Framework = a set of tools.
+
+We use it to build 'application server' logic.
+
+It contains all the libraries for:
+
+- Writing the C# code
+- Handles requests from clients (routing)
+- "Talks" to the database
+- Generates the HTML for clients
+
+Historically, ASP.NET has provided two ways
+to build web applications:
+
+- ASP.NET Web Forms (now is legacy)
+- ASP.NET MVC
+
+In this course we are going to learn ASP.NET MVC.
+
+
+
+ASP.NET MVC
+
+
+MVC separates an application into three main components:
+
+- Model
+- View
+- Controller
+
+and achieves separation of Concerns.
+
+Model (M)
+Represents the application's data and business logic (classes).
+
+Controller (C)
+It handles the incoming HTTP request, works with the Model
+to get data or perform actions, and then selects the appropriate
+View to render, passing it the data it needs.
+
+View (V)
+A HTML template responsible for the UI. It receives data from
+the controller and renders it.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
