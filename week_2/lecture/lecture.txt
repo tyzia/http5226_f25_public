@@ -1,0 +1,1047 @@
+
+
+
+
+
+
+
+Why C#?
+
+
+
+- Why are we learning C#?
+- Why not just use JavaScript?
+- What can C# do that JS can't?
+
+
+
+
+
+
+
+
+
+
+
+
+
+We are not saying:
+
+"JS is better" or "C# is better"
+
+We are saying:
+
+"Both are excellent tools, which one I need?"
+
+- JS is a fantastic tool for the frontend.
+- C# is a fantastic tool for the backend.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+How computers work
+
+
+
+
+
+Binary
+
+
+
+0
+1
+
+
+Computers operate with binary data: 0s and 1s.
+They don't understand anything else.
+
+It would be impossibly hard for a human to code
+instructions for computers in 0 and 1.
+
+For this reason concept of a Source Code was created.
+
+We write source code in understandable for humans
+syntax and after that compiler translates this code
+to binary, which CPU of computer understands.
+
+Between Source code and final binary result there is
+also a Machine Code concept.
+
+Machine Code - a set of instructions for CPU in HEX.
+
+
+Example
+
+We can create source code with JS:
+
+const sum = 5 + 3;
+
+First, it is converted into Machine Code:
+
+01 C3
+
+Next it is converted to binary:
+
+0000001 11000011
+
+CPU reads 0000001 11000011 from memory
+and executes sum of 5 and 3 and saves result
+into memory and points variable 'sum' to
+that location.
+
+
+
+
+
+Compiled vs Interpreted Language
+
+
+
+Compiled Languages: C, C++, C#
+
+A special program (compiler) translates entire
+source code file into a binary executable:
+
+my_program.c -> my_program.exe
+
+This executable contains raw machine code,
+ready for the CPU to run directly.
+
+This is very fast to execute.
+
+
+Interpreted Languages: JS, Python
+
+A special program (interpreter) reads the source
+code line by line. Translates each line into
+machine code on the fly, and immediately
+executes it.
+
+It doesn't create a separate executable file.
+This is slower because the translation happens
+every time you run the program.
+
+
+I have to mention, this is high level overview.
+Modern JS is not purely Interpreted language anymore,
+it has JIT (Just in time) Compilation and optimizes
+how interpreter works.
+
+
+
+
+
+
+
+
+
+Small history of C-family languages
+
+
+1970s -> C
+
+- low-level language
+- programmer is responsible for everything
+(memory allocations, releasing memory for variables)
+- like "Building a house by first forging your
+own nails and cutting down your own trees"
+
+1980s -> C++
+
+- inherits all complexity of C
+- adds Object Orienting Programming (classes)
+- like "giving you enough rope to hang yourself."
+
+++ = "add one" or "go up"
+
+2000s -> C#
+
+- designed from scratch by Microsoft
+- takes the best parts of C and C++
+- drastically reduces their "hard" parts
+
+# = in music means "half-step higher"
+
+
+
+
+
+
+
+
+
+
+
+Why C# is awesome?
+
+Designed for productivity, making it easier to write
+clean, maintainable code quickly.
+
+1. C# is Compiled
+
+- converted directly into highly optimized
+native code for CPU
+- extremely fast and efficient at processing data,
+handling complex business logic, and serving
+thousands of users simultaneously.
+
+
+2. C# is Strongly-Typed
+
+- You must define the type of every variable.
+- The compiler checks for type errors before
+the code even runs. This catches a huge class
+of bugs instantly.
+
+JavaScript is Loosely-Typed:
+A variable can be a string one moment and a number the next.
+This is flexible but makes it easy for type-related bugs to
+happen.
+
+
+3. The .NET Ecosystem
+
+C# isn't just a language.
+C# is part of the massive .NET platform:
+
+- Entity Framework (EF): interacts with a database
+ using C# objects instead of writing SQL queries.
+
+- Built-in Architecture: allowing us to write organized,
+testable, and maintainable code.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Base-10 & Binary
+
+
+
+
+
+
+
+
+
+
+
+
+
+Regular number (base 10)
+
+
+
+
+
+
+
+
+We use base 10 number system,
+because we use 10 digits to represent
+our numbers:
+
+0 1 2 3 4 5 6 7 8 9
+
+
+Example
+
+87
+
+The position of each digit tells us its value.
+
+The 8 is in the "tens" place: 8 * 10 = 8 * 10¹ = 80
+
+The 7 is in the "ones" place: 7 * 1 = 7 * 10⁰ = 7
+
+80 + 7 = 87
+
+
+demo: draw
+
+
+
+
+
+Let's take a more simple number:
+
+2
+
+demo: draw + why position matters
+
+
+
+
+
+Binary number (base 2)
+
+In binary system all you have is two digits
+to represent any number you need:
+
+0 1
+
+We can have only 0 and 1, nothing else
+to represent numbers.
+
+
+How to write number in binary?
+
+demo: draw binary grid
+
+Example
+
+0
+1
+2
+3
+...
+
+demo: draw
+
+
+1  -> 0001
+2  -> 0010
+3  -> 0011
+4  -> 0100
+5  -> 0101
+6  -> 0110
+7  -> 0111
+8  -> 1000
+9  -> 1001
+10 -> 1010
+
+
+Computers are built as binary system.
+They store information only in 0 and 1s.
+Combination of 0 and 1 is called 'bit'.
+
+Each bit - is a minimum memory location.
+
+Let's say I want to save 1 bit to computer
+memory, computer should allocate me 1 bit
+on hard drive to save my bit there.
+
+If I have only 1 bit of memory available
+on my computer which numbers I can save?
+
+Answer: Only one number, either 0 or 1
+
+
+If I have 2 bits of memory available
+on my computer which numbers I can save?
+
+Answer: Only one number, either 0 or 1 or 2 or 3
+
+
+
+This is not strictly true for modern computers,
+they allocate memory not by a bit, but by 8 bits.
+
+8 bits are called a 'byte'.
+
+demo: draw
+
+
+
+
+Decimal numbers
+
+In base 10 system how to represent:
+
+
+0.5
+
+draw
+
+
+
+Let's see how to save 0.5
+in binary in computer memory
+
+
+draw
+
+
+In binary positions to the right
+of binary point are:
+
+2⁻¹ = 1/2 = 0.5
+2⁻² = 1/4 = 0.25
+2⁻³ = 1/8 = 0.125
+2⁻⁴ = 1/16 = 0.0625
+2⁻⁵ = 1/32 = 0.03125
+2⁻⁶ = 1/64 = 0.015625
+2⁻⁷ = 1/128 ≈ 0.0078125
+2⁻⁸ = 1/256 = 0.00390625
+2⁻⁹ = 1/512 = 0.001953125
+2⁻¹⁰ = 1/1024 ≈ 0.0009765625
+
+
+
+The problem
+
+How to save 0.1 in binary?
+
+No computer can save 0.1 precisely,
+it can only save it approximately.
+
+draw
+
+
+0.1 (decimal) =
+0.000110011001100110011001100110011... (binary)
+
+
+
+C# is awesome!
+
+C# has special data type "decimal"
+[in Python (Decimal), SQL (DECIMAL)]
+
+This data type uses a different internal
+representation (often base-10) that can
+store 0.1 precisely.
+
+These are used primarily for financial
+calculations where exact decimal precision
+is crucial.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Installation
+
+
+
+
+
+
+For this course you would need:
+
+1. VS Code editor
+2. C# Dev Kit plugin for VC Code
+2. .NET SDK
+
+
+Install:
+VC Code: https://code.visualstudio.com/
+.NET SDK: https://dotnet.microsoft.com/en-us/download
+
+In VS Code go to Plugins and search for "C# Dev Kit".
+
+
+After installing .NET SDK to verify installation:
+
+> dotnet --version
+8.0.413
+
+If error "command not found" - restart your terminal.
+
+After installing C# plugin if you see error:
+
+The .NET Core SDK cannot be located: Error running
+dotnet --info: Error: Command failed: dotnet --info
+ /bin/sh: dotnet: command not found /bin/sh: dotnet:
+command not found .
+.NET Core debugging will not be enabled. Make sure
+the .NET Core SDK is installed and is on the path.
+
+Solution: restart your VS Code.
+
+To verify that your VS Code is set up properly,
+in VS Code terminal:
+
+> dotnet --info
+.NET SDK:
+Version:           8.0.413
+Commit:            a31823e79b
+Workload version:  8.0.400-manifests.6322a93a
+...
+
+
+
+
+
+
+How to open VS Code quickly:
+
+> code .
+
+If you see:
+code: command not found
+
+- Open VS Code
+- CTRL (CMD) + SHIFT + P
+- "shell command"
+- "Shell Command: Install 'code' command in PATH"
+- Restart your terminal
+
+
+
+
+
+
+
+
+
+
+Working with C#
+
+
+
+
+All C# code goes into *.cs files.
+But you don't just create a .cs file
+in an empty folder.
+
+You work within a Project.
+The Project is managed by the .NET CLI.
+
+Let's create a new Console project or app.
+
+> dotnet new console -o week2
+
+This command:
+
+- Creates a new folder (week2)
+- Creates a pre-configured C# project inside
+- Including Program.cs file.
+
+
+Program.cs
+
+Console.WriteLine("Hello, World!");
+
+Let's run our console app:
+
+> dotnet run
+Hello, World!
+
+Reference:
+https://dotnet.microsoft.com/en-us/learn/dotnet/hello-world-tutorial/install
+
+
+
+
+
+Great work!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Variables
+
+
+C# has dozens of number types
+(byte, short, long, etc.). They are used for
+advanced coding.
+
+In our case, we need only basic data types:
+
+int = for whole numbers (general purpose)
+decimal = for decimal numbers (money)
+string = for text
+bool = true/false
+
+
+Before we can use our variable, we need:
+
+- Define its data type
+- Define its name
+
+
+Example
+
+int counter;
+
+string city;
+
+
+Once we defined data type and variable name,
+we must assign value to it:
+
+counter = 0;
+city = "Toronto";
+
+
+We can do both in one line:
+
+int counter = 0;
+string city = "Toronto";
+
+Syntax: [dataType] [variableName] = [value];
+
+
+Important!
+You should always assign a value to your
+variable before you use it, otherwise
+you would get an error.
+
+demo:
+
+int counter;
+Console.WriteLine(counter);
+
+
+
+
+Mathematical operations
+
+int a = 10;
+int b = 3;
+
+int sum = a + b;
+int difference = a - b;
+int product = a * b;
+int quotient = a / b;
+int remainder = a % b;
+
+
+
+How modulus (%) works:
+
+int a = 10;
+int b = 3;
+int remainder = a % b;
+
+10/3 -> 3 1/3 -> 1
+
+
+
+Division of int / int always returns int!
+
+Any decimals as a result of division
+will be removed (numbers are not rounded)!
+
+So 3.66 will be 3, not 4!
+
+demo:
+
+int total = 11;
+int division = 3;
+int result = total / division;
+Console.WriteLine(result); // 3 <- 3.666 <- 11/3
+
+
+If you need decimal points, use 'decimal'
+data type and convert result to decimal.
+
+
+Converting one data type into other is simple:
+
+(decimal) integer
+
+Example:
+
+int total = 11;
+int division = 3;
+decimal result = (decimal) total / division;
+Console.WriteLine(result); // 3.666
+
+
+
+Important!
+If you change value of a variable which
+doesn't match data type of variable,
+you would get an error.
+
+demo:
+
+int age = "18";
+Console.WriteLine(age);
+
+This is an example of "strongly-typed" language. The app
+will not build and will prevent runtime crash.
+
+The data type (string, int, etc) can never change.
+Once a string, always a string.
+
+
+Assignment
+
+=
+
+We use assignment statement to set a new value
+to a variable:
+
+Sometimes we need to use same variable on both
+side of assignment:
+
+int age = 0;
+age = age + 1;
+
+other way to add:
+
+age += 1;
+
+Similar for other math operations:
+
+age -= 1; // age = age - 1;
+age *= 1; // age = age * 1;
+age /= 1; // age = age / 1;
+
+
+
+
+
+
+
+Formatting numbers
+
+
+The Syntax {value:format}
+
+double average = 2.3412567;
+Console.WriteLine($"{average:F2}"); // 2.34
+
+int average = 2;
+Console.WriteLine($"{average:F2}"); // 2.00
+
+F = "Fixed-point" format, number with a decimal point.
+2 = how many digits should appear after the decimal point.
+
+
+
+
+Converting to numbers
+
+int result = int.Parse("1"); // 1
+
+
+
+
+
+
+
+
+Converting data types
+
+
+Any dat structure always has
+two methods available:
+
+- ToString
+- Parse
+
+ToString() converts any data to string:
+
+int myAge = 18;
+myAge.ToString(); // "18"
+
+Parse() method is opposite, it converts
+a string value into other data type.
+
+string myNumber = "87";
+int.Parse(myNumber); // 87
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Working with strings
+
+string myCollege = "Humber";
+
+Concatenation of strings
+
+string myAwesomeCollege = "Humber" + " " + "is" + " awesome"; // Humber is awesome
+
+A better way to concatenate strings:
+
+string college = "Humber";
+string myFavourite = $"My favourite college is {college}";
+Console.WriteLine(myFavourite);
+
+
+
+
+
+Nullable type
+
+
+By default value types (int, decimal or bool)
+can't store null value.
+
+
+int demo = null;
+// will produce an error
+
+
+To declare a data type which might have
+null value:
+
+int? quantity;
+quantity = null;
+quantity = 1;
+
+bool? isValid = null;
+
+Strings can have null values by default.
+There is no need to make strings nullable:
+
+string? myCity = null;
+string myCity = null;
+
+
+string.IsNullOrEmpty() - checks if provided string is not empty
+
+string.IsNullOrEmpty("Andrei") // false
+string.IsNullOrEmpty(null) // true
+
+
+
+
+Loops
+
+for (int i = 0; i < 2; i++)
+{
+    // do something
+}
+
+To skip iteration:
+
+continue;
+
+To stop the loop:
+
+break;
+
+Example
+
+for (int i = 0; i < 2; i++)
+{
+    if (condition)
+    {
+        continue;
+    }
+
+    if (otherCondition)
+    {
+        break;
+    }
+}
+
+
+
+Console useful commands:
+
+Console.WriteLine() - prints text in console and adds new line
+Console.Write() - prints text in console and stays at the same line
+Console.ReadLine() - read input from console
+
+
+
+
+
+
+
+
+
+
+
+
+In real world, applications are never that simple.
+They grow.
+They often have multiple parts.
+
+Let's learn how to structure a .NET project
+like a professional developer.
+
+
+The idea is that we:
+
+1) Create a solution file.
+This file "knows" about all the parts of our project.
+The dotnet CLI uses this file to build and test everything.
+
+2) Create console app.
+
+3) Add this app into solution file.
+
+
+
+
+Step by step how to create a console
+project:
+
+
+0) Create correct folder:
+
+> mkdir week2_lab
+> cd week2_lab/
+> mkdir src
+
+Result: week2_lab/src
+
+
+1) Create the solution file in root:
+
+> dotnet new sln -n VariableLab
+
+Result:
+The template "Solution File" was created successfully.
+
+here:
+
+-n = name
+
+"Create a new solution file (sln) and name it VariableLab."
+
+
+2) Create console application in src folder:
+
+> dotnet new console -o src/VariableLab
+
+Result:
+The template "Console App" was created successfully.
+
+
+3) Add your application to the solution:
+
+> dotnet sln add src/VariableLab/VariableLab.csproj
+
+Result:
+Project `src/VariableLab/VariableLab.csproj` added to the solution.
+
+
+Let's add some interactivity:
+
+demo/src/VariableLab/Program.cs
+
+
+
+C# code snippet:
+
+using System;
+
+Console.WriteLine("Welcome to the Sum Calculator!");
+Console.WriteLine("I will ask you for 5 numbers and add them together.");
+
+int sum = 0;
+
+for (int i = 0; i <= 5; i++)
+{
+    Console.Write($"Enter number {i}: ");
+
+    string userInput = Console.ReadLine();
+    int number = int.Parse(userInput);
+
+    sum += number;
+}
+
+Console.WriteLine("---------------------------------");
+Console.WriteLine($"The sum of the numbers you entered is: {sum}");
+
+
+
+Demo two warnings:
+
+"Converting null literal or possible null value to non-nullable type."
+"Possible null reference argument for parameter 's' in 'int int.Parse(string s)'."
+
+demo app crash (dotnet run + empty line)
+
+
+
+
+To stop running app in terminal:
+
+Win: CTRL + C
+Mac: Control + C
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Thank you
+
+
+

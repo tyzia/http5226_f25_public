@@ -1,0 +1,14 @@
+/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/playground/week2_lab/src/VariableLab/bin/Debug/net8.0/VariableLab
+/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/playground/week2_lab/src/VariableLab/bin/Debug/net8.0/VariableLab.deps.json
+/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/playground/week2_lab/src/VariableLab/bin/Debug/net8.0/VariableLab.runtimeconfig.json
+/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/playground/week2_lab/src/VariableLab/bin/Debug/net8.0/VariableLab.dll
+/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/playground/week2_lab/src/VariableLab/bin/Debug/net8.0/VariableLab.pdb
+/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/playground/week2_lab/src/VariableLab/obj/Debug/net8.0/VariableLab.GeneratedMSBuildEditorConfig.editorconfig
+/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/playground/week2_lab/src/VariableLab/obj/Debug/net8.0/VariableLab.AssemblyInfoInputs.cache
+/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/playground/week2_lab/src/VariableLab/obj/Debug/net8.0/VariableLab.AssemblyInfo.cs
+/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/playground/week2_lab/src/VariableLab/obj/Debug/net8.0/VariableLab.csproj.CoreCompileInputs.cache
+/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/playground/week2_lab/src/VariableLab/obj/Debug/net8.0/VariableLab.dll
+/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/playground/week2_lab/src/VariableLab/obj/Debug/net8.0/refint/VariableLab.dll
+/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/playground/week2_lab/src/VariableLab/obj/Debug/net8.0/VariableLab.pdb
+/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/playground/week2_lab/src/VariableLab/obj/Debug/net8.0/VariableLab.genruntimeconfig.cache
+/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/playground/week2_lab/src/VariableLab/obj/Debug/net8.0/ref/VariableLab.dll
