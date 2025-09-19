@@ -31,7 +31,7 @@ REPL
 To follow along interactive demos of the lecture,
 you need to install REPL (Read-Eval-Print-Loop)
 
-0. Install .NET 9.0
+0. Install .NET 9.0 (https://dotnet.microsoft.com/en-us/download)
 1. Install "Polyglot Notebooks" extension in VS Code.
 2. Access github for this course and get *.dib files from repl/
 3. Open repl/ folder in VS Code.
