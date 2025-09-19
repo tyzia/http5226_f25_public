@@ -1,0 +1,51 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"name":"csharp"},{"name":"fsharp","languageName":"F#","aliases":["f#","fs"]},{"name":"html","languageName":"HTML"},{"name":"http","languageName":"HTTP"},{"name":"javascript","languageName":"JavaScript","aliases":["js"]},{"name":"mermaid","languageName":"Mermaid"},{"name":"pwsh","languageName":"PowerShell","aliases":["powershell"]},{"name":"value"}]}}
+
+#!markdown
+
+# Type Exercises
+
+Task: Write type of each literal as comments. (see example).
+
+#!csharp
+
+// Example: 10
+// Type: int
+// to verify:
+10.GetType()
+
+#!csharp
+
+// 1) 10.0
+// Type: 
+
+#!csharp
+
+// 2) 10.0f
+// Type:
+
+#!csharp
+
+// 3. 10.0d
+// Type:
+
+#!csharp
+
+// 4. 10.0m
+// Type:
+
+#!csharp
+
+// 5. 1_000
+// Type:
+
+#!csharp
+
+// 6. 1e6
+// Type:
+
+#!csharp
+
+// 7. 1e6f
+// Type:

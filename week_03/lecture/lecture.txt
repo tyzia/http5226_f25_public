@@ -1,0 +1,582 @@
+
+
+
+
+
+Plan
+
+
+REPL
+Numbers
+int
+float
+double
+decimal
+Scientific notation
+Order of precedence
+Type casting
+
+
+
+
+
+
+
+
+
+
+REPL
+
+
+To follow along interactive demos of the lecture,
+you need to install REPL (Read-Eval-Print-Loop)
+
+0. Install .NET 9.0
+1. Install "Polyglot Notebooks" extension in VS Code.
+2. Access github for this course and get *.dib files from repl/
+3. Open repl/ folder in VS Code.
+4. Open the *.dib file.
+5. Click "Trust" if prompted.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Number literals
+
+
+
+To declare a number, you would need to ask yourself:
+
+"What is the purpose of this number?"
+
+
+Data types related to numbers:
+
+
+1) int
+
+Represents whole numbers (integers)
+
+- 32 bits:
+
+  1 bit for the Sign (0=positive, 1=negative)
+  31 bit for number
+
+- 2³² (4,294,967,296) unique values
+- range -2,147,483,648 to 2,147,483,647
+
+When to use: Any time you need a number
+without a decimal part: counters, loop indices, IDs.
+
+Example
+
+int numberOfUsers = 243;
+
+string[] users = { "Alice", "Bob", "Charlie", "Diana" };
+
+int index = 3;
+string name = users[index]; // "Diana"
+
+for (int i = 0; i < users.Length; i++)
+{
+    users[i];
+}
+
+
+
+2) float
+
+Represents approximate numbers,
+uses scientific notation (1.4e-45)
+
+It is fast and memory-efficient
+but has limited precision (~6-9 decimal digits).
+
+- 32 bits:
+
+  1 bit for the Sign (0=positive, 1=negative)
+  23 bits for Significand
+  8 bits for Exponent
+
+
+
+
+
+
+
+Scientific notation
+
+It is a way to write very large or
+very small numbers in a compact form.
+
+The idea to break a number into two parts:
+
+- significant
+- exponent
+
+
+Example
+
+I have: 8,877,345
+
+1) Find decimal point
+
+8,877,345.
+
+2) Move point so that only non-zero digit
+is to the left (normalize)
+
+8.877345
+
+3) Add positive exponent
+
+8.877345 × 10⁶
+
+Power of 6, because we moved decimal point
+6 places.
+
+4) Rewrite it:
+
+8.877345e+6
+
+In this notation:
+
+Significand - 8.877345
+Base - 10
+Exponent - 6
+
+
+Why it is useful?
+
+Instead of writing:
+
+3,000,000,000
+
+we write:
+
+3 × 10⁹
+3e+9
+
+
+Floating-point representation
+(binary)
+
+Example
+
+6.25
+
+How to convert to binary floating-point?
+
+1) Convert decimal to binary:
+
+6.25 (decimal) -> 110.01 (binary)
+
+2) Normalize it:
+
+1.1001
+
+3) Add positive exponent
+
+1.1001 × 2²
+
+Here:
+
+Significand - 1.1001
+Base - 2
+Exponent - 2
+
+4) To save it as float, break into parts:
+
+1 bit Sing: 0 (positive)
+23 bits Significand: 1001
+
+not 1.1001 because leading 1 is always the first
+digit and not stored to save space.
+We save only "1001"
+
+8 bits Exponent: 10000001
+
+The exponent is stored with a "bias" 127
+2 -> 2 + 127 = 129 (or 10000001 in binary).
+
+Final result:
+
+decimal: 6.25
+
+float: 0 10000001 10010000000000000000000
+       (Sign) (Exponent) (Significand)
+
+
+
+
+How precision is lost with float?
+
+Significand is 23 bits, this is how much
+0s & 1s we can save. It is limited space.
+
+It can represent roughly 6-7-digit decimal numbers.
+
+6 digits: 500,000
+7 digits: 7,100,00
+
+Anything more than 7 digits will be saved
+as approximate.
+
+
+Example
+
+I want to save 10-digit number as float:
+
+1234567890
+
+1) Convert to binary:
+
+1001001100101100000001011010010
+
+2) Create scientific notation:
+
+1.001001100101100000001011010010 × 2³⁰
+
+3) Save Significant in 23 bits:
+
+original (30 bits): 001001100101100000001011010010
+saved (23 bits):    00100110010110000000101
+
+We lost 7 last bits ((
+
+When this is converted back to decimal,
+it becomes:
+
+1234567936
+(not 1234567890)
+
+
+
+
+When to use float?
+
+Primarily in:
+
+- science
+- graphics programming
+- older games
+
+where performance and memory
+are critical, and the small loss of precision
+is acceptable.
+
+
+
+Example
+
+1) The mass of the Sun: 1.989 × 10³⁰ kg
+
+You can't save it as int (limit roughly 4 billion)
+You can save it as float: 1.989e+30
+
+2) Coordinates in a 3D game: (124.671, 5.442, -87.335)
+
+You can't save it as int (it is only for whole numbers)
+You can save it as float: 1.24671e+2, 5.442e+0, -8.7335e+1
+
+
+To declare a float - number must be suffixed with f or F.
+
+float temperature = 37.6f;
+float ratio = 5.67F;
+
+If you miss 'f' you would get an error:
+
+float temperature = 37.6;
+
+Because any decimal number C# by default stores as 'double'.
+
+
+
+
+
+3) double
+
+Double-Precision Floating-Point
+
+- 64 bits:
+
+  1 bit for the Sign (0=positive, 1=negative)
+  52 bits for Significand
+  11 bits for Exponent
+
+Represents approximate fractional numbers with
+higher precision than float.
+It's the default type for numbers with a decimal point in C#.
+
+Used for most general-purpose calculations
+involving fractions where extreme precision isn't critical.
+
+To declare a double you may add 'd' but it is optional:
+
+double distance = 1234.567;
+double speedOfLight = 2.99792458e8;
+double preciseValue = 1.234d;
+
+
+
+
+
+4) decimal
+
+Represents high-precision fractional numbers.
+It uses 128 bits and is designed for base-10 calculations.
+It does not have the rounding errors.
+But is significantly slower.
+
+Use for financial calculations where exact precision
+is mandatory.
+
+To declare a decimal add 'm' suffix ("money"):
+
+decimal price = 29.99m;
+
+Digit separators
+
+You can use '_' to make numbers more readable:
+
+decimal bankBalance = 1000000.50M;
+decimal bankBalance = 1_000_000.50M;
+
+
+
+
+
+To recap:
+
+
+93.75 → double (default)
+
+93.75f → float
+
+93.75m → decimal
+
+
+
+
+
+
+
+demo: demo/number.dib
+
+practice: repl/number.dib
+practice: repl/type.dib
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Order of precedence
+
+
+
+
+
+
+Order of precedence is similar to math:
+
+1) Increment & decrement -> a++, b--
+2) Positive and negative -> -a
+3) Multiplication, division, modulus -> a * b, a / b, a % b
+4) Addition & subtraction -> a + b, a - b
+
+To override order of precedence, you use ()
+
+a + b * c
+
+1) b * c -> result
+2) a + result
+
+(a + b) * c
+
+1) a + b -> result
+2) result * c
+
+
+Increment/decrement can be used as
+
+- prefix -> ++a
+- postfix -> a++
+
+When prefix - variable is incremented and then
+result is assigned.
+
+When postfix - the result is assigned and then
+variable is incremented.
+
+Example
+
+int a = 0;
+int b = ++a;
+
+Result:
+a = 1, b = 1
+
+increment a from 0 to 1 first
+then assign value 1 to b
+
+int a = 0;
+int b = a++;
+
+Result:
+a = 1, b = 0
+
+assign value 0 to b first
+then increment a from 0 to 1
+
+
+
+
+
+
+
+
+
+Type conversions in C#
+
+
+When you work with data, you would sometimes
+need to convert data type from one to another.
+
+This is called 'casting'.
+
+Two types of casting:
+
+- Implicit (done automatically by C#)
+- Explicit (you code it)
+
+
+Implicit
+
+
+Implicit is used when converting data from
+less precise type to a more precise.
+
+Less or more precise is determined by:
+
+- range of values
+- decimal precision
+
+Example
+
+Range:
+
+byte (0 to 255) <- less precise than int
+int (-2 bn to +2 bn) <- more precise than byte
+
+Precision:
+
+float (~6-9 digits precision) <- less precise
+double (~15-17 digits precision) <- more precise
+decimal (28-29 digits precision) <- most precise
+
+
+Example
+
+double grade = 93;
+
+Here int 93 (less precise) is implicitly
+cast to double variable 'grade' (more precise).
+
+
+Explicit
+
+Implicit conversion here will not work:
+int grade = 93.75; // error
+
+C# does not allow implicit conversion from
+double to int because it involves potential
+data loss (the decimal part .75 would be truncated)
+
+The compiler protects you from accidentally
+losing precision.
+
+In this case we need to use explicit cast.
+
+Syntax: (type) expression
+
+Example
+
+int grade = (int) 93.75; // 93
+
+Here double 93.75 is converted to int.
+
+
+
+
+
+
+Division int by int will always return int.
+
+If division can give decimal value, it will be lost.
+
+Example
+
+decimal result = 10 / 3; // 3
+
+How to fix?
+
+We need to convert int to decimal value:
+
+decimal result = (decimal) 10 / 3; // 3.33(3)
+
+This way we convert one value (10) to decimal
+and now all division returns decimal as result.
+
+We can convert any value, the result the same:
+
+decimal result = (decimal) 10 / 3; // 3.33(3)
+decimal result = 10 / (decimal) 3; // 3.33(3)
+
+
+Alternatively we could convert division, not number,
+to decimal:
+
+decimal result = (decimal) (10 / 3); // 3.00
+
+But it will give us wrong result.
+
+Because order of precedence:
+
+1) Division: 10/3. Because it is int / int,
+result is int -> 3
+
+2) Convert int 3 to decimal -> 3.00
+
+
+
+
+
+
+
+
+
+
+
+Thank you

@@ -1,0 +1,40 @@
+#!meta
+
+{"kernelInfo":{"defaultKernelName":"csharp","items":[{"name":"csharp"},{"name":"fsharp","languageName":"F#","aliases":["f#","fs"]},{"name":"html","languageName":"HTML"},{"name":"http","languageName":"HTTP"},{"name":"javascript","languageName":"JavaScript","aliases":["js"]},{"name":"mermaid","languageName":"Mermaid"},{"name":"pwsh","languageName":"PowerShell","aliases":["powershell"]},{"name":"value"}]}}
+
+#!markdown
+
+# Beginner Number Exercises
+
+Task: Declare variables of the correct type for the following values and print them (see example).
+
+#!csharp
+
+// Example: Number of wheels on a car (4)
+int wheelCount = 4;
+wheelCount
+
+#!csharp
+
+// 1) Number of students in a class (25 people)
+// Your code here
+
+#!csharp
+
+// 2) The value of Pi (3.14159)
+// Your code here
+
+#!csharp
+
+// 3. The price of a textbook (75.99)
+// Your code here
+
+#!csharp
+
+// 4. Today's temperature in degrees Celsius (+25.3)
+// Your code here
+
+#!csharp
+
+// 5. The number of planets in our solar system (8 planets)
+// Your code here
