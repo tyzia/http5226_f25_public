@@ -1,0 +1,888 @@
+
+
+
+
+
+
+
+
+Plan
+
+Class
+Access modifiers
+Fields
+Properties
+getters / setters
+Constructor
+Methods
+Signature
+
+
+
+
+
+
+
+
+
+
+What is a Class and Why?
+
+
+Let's try to avoid class:
+
+I want to have data, related to students:
+
+- name
+- age
+- major
+
+
+1) Create array of student names:
+
+string[] studentNames = { "Alice", "Bob", "Charlie" };
+
+2) Create array of student ages:
+
+int[] studentAges = { 20, 21, 19 };
+
+3) Create array of student majors:
+
+string[] studentMajors = { "Computer Science", "Mathematics", "Physics" };
+
+Now if I want to use this data, I would code something like:
+
+Console.WriteLine($"Name: {studentNames[0]}");
+Console.WriteLine($"Age: {studentAges[0]}");
+Console.WriteLine($"Major: {studentMajors[0]}");
+
+How do I know that this code is displaying "Alice"?
+I need to remember that it is at index 0.
+If I need to change it in the future, it
+would be hard to maintain.
+
+
+
+
+
+
+
+A solution would be to use a class.
+
+This allows:
+
+- Keep related data together
+- Create multiple students easily
+- Changes affect all instances
+
+
+Define a class:
+
+class Student
+{
+    public string Name;
+    public int Age;
+    public string Major;
+}
+
+
+
+Use class to create new objects:
+
+Student student1 = new Student();
+student1.Name = "Alice";
+student1.Age = 20;
+student1.Major = "Computer Science";
+
+Student student2 = new Student();
+student2.Name = "Bob";
+student2.Age = 21;
+student2.Major = "Mathematics";
+
+Now data is organized together!
+
+
+
+- Name of class starts with capital letter
+- File name should have the same name (Student.cs)
+- Define access modifier (public/private) for properties
+- Define type of properties
+- Property names start with capital letter
+
+
+
+
+
+
+
+Access modifiers:
+
+- public
+- private
+
+
+Public modifiers mean that I can access
+(read or update their value) outside of class.
+
+Private modifier mean that I can't.
+
+
+Example public
+
+class Student
+{
+    public string Name;
+}
+
+Student man = new Student();
+
+man.Name = "Andrei"; // update value
+
+Console.WriteLine($"{man.Name}"); // read value
+
+
+Example private
+
+class Student
+{
+    private string Name;
+}
+
+Student man = new Student();
+
+man.Name = "Andrei"; // error
+
+Console.WriteLine($"{man.Name}"); // error
+
+
+
+
+
+
+
+
+
+
+
+Fields & Properties
+
+
+
+
+
+- Field: A variable that belongs to a class
+
+Example
+
+class Student
+{
+    public string name;
+}
+
+
+- Property: A member that allows to read & write fields
+
+
+Example
+
+class Student
+{
+    public string Name;
+}
+
+
+
+So what is the difference? Just in first letter?
+
+There is a major difference.
+
+
+
+Fields
+
+
+Field - is a variable defined at the class level
+and designed to store data. They have primitive data types:
+
+private int quantity;
+private decimal price;
+
+It is a bad practice to use public access modifier for fields,
+so this is technically possible, but no one codes like this:
+
+public int count; // wrong!
+
+Because fields are usually private, there is a convention to add
+underscore (_) to the beginning of the name:
+
+private int _quantity;
+private decimal _price;
+
+
+
+Properties
+
+
+Property - is the way to get or set value to
+class fields. For this we need to define
+two methods:
+
+- getter
+- setter
+
+Getter method would define logic how
+to get value of a private field.
+
+Setter method would define logic how
+to set value of a private field.
+
+
+Example
+
+
+class Student
+{
+    public string Name { get; set; };
+}
+
+This is example of auto-property,
+when I actually don't define any specific logic
+for my getters and setters.
+
+Notice that property name always starts with
+capital letter and should have public access
+modifier. Because property is designed to be
+used outside of class, so it should be
+publicly available.
+
+Each property should have corresponding private
+field with the same type and same name.
+
+
+Example
+
+class Student
+{
+    private string _name;
+    public string Name { get; set; };
+}
+
+To use this property in code:
+
+Student st = new Student();
+st.Name = "Andrei";
+
+
+
+We can pass a value to setter. The keyword
+which we use must be 'value':
+
+class Student
+{
+    private string _name; // private field
+    public string Name // public property
+    {
+        get { return _name; }
+        set
+        {
+            if (!string.IsNullOrEmpty(value)) // 'value' is a must-use keyword here
+            {
+                _name = value;
+            } else
+            {
+                throw new ArgumentException("Name cannot be empty");
+            }
+        }
+    }
+}
+
+Student man = new Student();
+
+You can't access private field:
+
+man._name = "Andrei"; // error
+Console.WriteLine($"{man._name}"); // error
+
+You should use getter/setter to access
+private field.
+
+
+Example:
+
+Console.WriteLine($"{man.Name}");
+
+man.Name = "Andrei"; // success
+
+man.Name = ""; // throws exception
+
+
+We use setters to safeguard fields
+of our objects.
+
+
+
+
+
+Example of how Properties guard our code:
+
+
+Let's start with the field.
+
+We use field, not property, and make it public
+so that we can access it later:
+
+class Student
+{
+    public string name;
+}
+
+Student st1 = new Student();
+st1.name = "1";
+
+Student st2 = new Student();
+st2.name = "2";
+...
+Student st99 = new Student();
+st99.name = "99";
+
+
+
+The problem is approaching.
+
+There is a decision to do validation before setting
+name.
+
+To do that we need a property setter method, because
+field doesn't have a way to add validation to it.
+
+We amend our class and add property Name with a setter method.
+
+class Student
+{
+    public string name;
+    public string Name
+    {
+        set
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                _name = value;
+            }
+        }
+    }
+}
+
+The code below still doesn't do validation when
+sets the value, because it doesn't use our new property.
+
+Student st1 = new Student();
+st1.name = ""; // validation doesn't work here!
+
+So to actually make this change, we need to change
+'name' to 'Name' in code in all places = 99 times!
+
+Student st1 = new Student();
+st1.Name = "1";
+
+Student st2 = new Student();
+st2.Name = "2";
+...
+Student st99 = new Student();
+st99.Name = "99";
+
+
+This is a big maintenance problem.
+
+
+How to avoid this and follow best practice?
+
+Answer: always use properties! Use fields to store data.
+
+
+The same example, but with property.
+
+We start with property without getter/setter,
+that's fine as long as it is not a field (small letter)
+
+class Student
+{
+    public string Name;
+}
+
+Student st1 = new Student();
+st1.Name = "1"; // capital 'Name', we use property
+
+Student st2 = new Student();
+st2.Name = "2";
+...
+Student st99 = new Student();
+st99.Name = "99";
+
+
+Again, there is a decision to add validation for name.
+
+We add a private field to store the value and add
+setter to do validation.
+
+class Student
+{
+    private string _name; // added this line
+    public string Name
+    {
+        set
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                _name = value;
+            }
+        }
+    }
+}
+
+The rest of code is untouched, we keep using the
+same property 99 times:
+
+Student st1 = new Student();
+st1.Name = "1";
+...
+Student st99 = new Student();
+st99.Name = "99";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Practice
+
+
+
+Task 1
+Create a Book class with:
+
+- A private field _title (string)
+- A public property Title with basic getter and setter
+- Create a Book object and set/get the title
+
+
+
+
+
+Answer:
+
+
+
+
+
+
+
+
+Task 2
+
+Create a BankAccount class with:
+
+- A private field _balance (decimal)
+- A public property Balance where the setter prevents negative values
+- If someone tries to set negative balance, set it to 0 instead
+
+
+
+
+
+
+Answer
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Practice 1
+
+Create a class Student, store age inside,
+if setting age validate that it is between 16 & 100
+before setting the value, otherwise throw ArgumentException
+with error message "Age must be between 16 and 100".
+
+
+
+
+Answer:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Constructor
+
+
+Let's say this is our class:
+
+class Student
+{
+    private string _name;
+    public string Name
+    {
+        set { _name = value; }
+    }
+}
+
+Without a constructor I need 2 lines
+to create an object and to set value
+to its property.
+
+Student student1 = new Student();
+student1.Name = "Andrei";
+
+
+If I define a constructor in my Class,
+I can do the same in 1 line.
+
+Constructor has the same name as class.
+
+class Student
+{
+    private string _name;
+    public string Name;
+
+    // constructor
+    public Student(string name)
+    {
+        Name = name;
+    }
+}
+
+Student student1 = new Student("Andrei");
+
+
+
+
+
+Question:  We used property, not field in the constructor, why?
+
+Why not like this?
+
+class Student
+{
+    private string _name;
+    public string Name;
+
+    public Student(string name)
+    {
+        _name = name;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+Answer:
+
+Technically we can assign private property via
+constructor, but we loose all validations:
+
+Student student1 = new Student(null); // Name is not validated for null
+
+
+
+
+
+
+
+
+
+
+
+Methods
+
+
+
+We can add methods into class to perform some tasks.
+
+Methods also have access modifiers:
+
+- public
+- private
+
+
+
+public
+
+
+
+With public access modifier we can call this method outside
+of class (from object).
+
+Example
+
+
+public class Student
+{
+    public void IntroduceYourself()
+    {
+        Console.WriteLine("Hello, I'm a student!");
+    }
+}
+
+Student st = new Student();
+st.IntroduceYourself(); // "Hello, I'm a student!"
+
+This method is defined as 'public' and doesn't
+return anything, hence return type is 'void'.
+
+
+private
+
+
+With private access modifier we can only call
+this method from within a class, not outside of it.
+
+public class Student
+{
+    private void IntroduceYourself()
+    {
+        Console.WriteLine("Hello, I'm a student!");
+    }
+}
+
+Student st = new Student();
+st.IntroduceYourself(); // error
+
+
+
+When to use private methods?
+
+When you need them internally. For example,
+to do validation before setting fields
+
+Example
+
+
+public class Student
+{
+    private string _name;
+
+    private void ValidateName(string name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentException("Name cannot be empty");
+        }
+    }
+
+    // Public method
+    public void SetName(string name)
+    {
+        ValidateName(name);
+        _name = name;
+    }
+}
+
+
+
+
+
+
+
+Signature
+
+Method's signature is a combination of:
+
+- method's name
+- method's parameters
+
+
+Example:
+
+public string GetName()
+{
+    return "Canada";
+}
+
+Here "GetName()" + no parameters = method's signature.
+
+
+
+We can use the same name for different methods, but
+signatures must be unique.
+
+
+Example:
+
+public int GetAge() { return 18; }
+public int GetAge(int start) { return start > 18 ? start : 0; }
+public int GetAge(int start, int finish) { return start < 18 < finish ? start : 0; }
+
+Here we have different signatures:
+
+1) "GetAge()" // no params
+2) "GetAge(int)" // one parameter of type 'int'
+2) "GetAge(int, int)" // two parameters of type 'int'
+
+
+When we create two or more methods with the same name,
+it is called 'overload'. It is common practice:
+we provide different versions of the same method
+so that it works with different arguments.
+
+
+
+
+
+
+
+
+
+
+Static methods
+
+Static methods can be accessed without creating an
+instance of the class (object).
+
+Example
+
+
+public class Student
+{
+    public static string PrintName()
+    {
+        return "Hello world";
+    }
+}
+
+To call this method, I don't need to create
+an object:
+
+Student.PrintName(); // "Hello world"
+
+
+Technically speaking, I can create an object and
+call static method from it:
+
+Student st = new Student();
+st.PrintName(); // bad practice
+
+This should be avoided.
+
+The idea of static methods is:
+
+Not to depend on state
+of the object.
+
+It is standalone utility.
+It will work always the same.
+
+If method is not static, it might depend on
+object state:
+
+Example
+
+class Student
+{
+    public string Name;
+    public string GetName()
+    {
+        return Name;
+    }
+}
+
+Student st1 = new Student();
+st1.Name = "Andrei";
+st1.GetName(); // "Andrei"
+
+Student st2 = new Student();
+st2.Name = "Canada";
+st2.GetName(); // "Canada"
+
+Here same public method of the same class
+returns different values depending
+on object's state.
+
+State of st1 object is that it has name "Andrei"
+State of st2 object is that it has name "Canada"
+
+This what means - depending on object's state.
+
+
+When we use static method it works always the same,
+it is more like a utility or a tool.
+
+
+Example
+
+
+class Student
+{
+    public string Name;
+    public static string GetName()
+    {
+        return "Ontario";
+    }
+}
+
+Student st1 = new Student();
+st1.Name = "Andrei";
+st1.GetName(); // "Ontario"
+
+Student st2 = new Student();
+st2.Name = "Canada";
+st2.GetName(); // "Ontario"
+
+Here same static method
+returns same value and does not depend
+on object's state.
+
+
+
+
+
+
+
+
+
+
+Thank you
+
+
+
+
+
