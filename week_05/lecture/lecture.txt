@@ -1,0 +1,125 @@
+
+
+
+
+Static methods with objects
+
+
+
+
+
+
+
+When we create static methods,
+we're not limited to working with primitive types
+like int or string. We can also pass objects
+as parameters to static methods.
+
+And these objects can be of the same class.
+
+Example
+
+class Student
+{
+    public string Name;
+
+    public static int CompareNames(Student name1, Student name2)
+    {
+        if (name1.Name == name2.Name)
+        {
+            return 1;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+}
+
+Student st1 = new Student();
+Student st2 = new Student();
+
+st1.Name = "A";
+st2.Name = "B";
+
+Student.CompareNames(st1, st2); // -1
+
+If we use the same name:
+
+st1.Name = "A";
+st2.Name = "A";
+
+Student.CompareNames(st1, st2); // 1
+
+
+
+
+
+
+
+
+Let's extend the Student class to
+demonstrate how static methods can
+call public instance methods on the
+objects passed to them.
+
+
+
+
+class Student
+{
+    public string Name;
+    private int _score;
+
+    public void AddScore(int points)
+    {
+        _score += points;
+    }
+
+    public static void RewardBothStudents(Student student1, Student student2, int rewardPoints)
+    {
+        student1.AddScore(rewardPoints);
+        student2.AddScore(rewardPoints);
+    }
+}
+
+
+Here we define public method AddScore()
+which will add points to _score field;
+
+We also have a static method, which accepts
+three parameters: 2 objects and int.
+
+How to use it?
+
+Example
+
+Student alice = new Student();
+Student bob = new Student();
+
+alice.Name = "Alice";
+bob.Name = "Bob";
+
+// Call static method and pass our objects
+Student.RewardBothStudents(alice, bob, 10);
+
+As a result now both students will have
+10 points assigned:
+
+{ Name: "Alice", _score: 10 }
+{ Name: "Bob", _score: 10 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
