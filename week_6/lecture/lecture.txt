@@ -1,0 +1,1127 @@
+
+
+
+
+Plan
+
+Why DB?
+Tables
+Columns
+Rows
+SQL
+Database Engine
+Data types
+Basic SQL
+CRUD
+ADO.NET overview
+
+
+
+
+
+
+
+
+
+
+
+Working with Database
+
+
+
+
+Why we need DB?
+
+
+
+
+
+
+
+We can store data in variables, but this
+data will be lost, once we stop our app.
+
+We need data persistence. This means
+we need to save data which our app is using
+in a place where it would persist.
+
+This place is a Database.
+
+
+
+
+
+
+
+
+
+Before moving forward, let's see how
+data is lost.
+
+
+I will try to save data in the list:
+
+demo/NoDatabaseDemo
+
+(
+    cd demo/NoDatabaseDemo
+    dotnet run
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+Database Fundamentals Recap
+
+
+
+
+
+What is a Database?
+
+A place where we store data in a structured way.
+
+
+
+Tables
+
+We use tables for a specific purpose -
+to store related data.
+
+Example,
+
+To store data related to products,
+I will use table 'products'.
+
+To store data about customers,
+I will have table 'customers'.
+
+
+
+Columns
+
+We don't just dump all data into table
+we use structure.
+
+Bad:
+
+1John Doejohn@email.comNew York
+
+Good
+
+| 1  | John Doe   | john@email.com    | New York |
+
+
+To structure the data that way
+we use columns.
+
+Result:
+
++----+------------+-------------------+----------+
+| ID | Name       | Email             | City     |
++----+------------+-------------------+----------+
+| 1  | John Doe   | john@email.com    | New York |
+
+
+Each column has:
+
+- name
+- type
+- length
+
+
+
+Rows
+
+Our table can have many records,
+which we call rows:
+
++----+------------+-------------------+----------+
+| ID | Name       | Email             | City     |  ← Columns
++----+------------+-------------------+----------+
+| 1  | John Doe   | john@email.com    | New York |  ← Row 1
+| 2  | Jane Smith | jane@email.com    | Chicago  |  ← Row 2
+| 3  | Bob Wilson | bob@example.com   | Miami    |  ← Row 3
++----+------------+-------------------+----------+
+
+Each row is one complete set of information.
+
+
+
+
+
+
+
+
+SQL
+
+
+
+
+SQL (Structured Query Language)
+
+
+SQL is:
+
+- Not a database!
+- A language.
+
+We use SQL to communicate with databases.
+
+SQL is universal:
+most databases understand SQL.
+
+
+
+
+
+
+
+
+Database Engine
+
+
+The software that actually stores, manages,
+and retrieves the data.
+
+Database Engine understands SQL commands and
+executes them.
+
+It handles security, performance, and
+data integrity.
+
+
+
+
+
+
+
+Popular Database Engines:
+
+MySQL          (Popular, free, open-source)
+SQL Server     (Microsoft, enterprise-grade)
+PostgreSQL     (Advanced features, open-source)
+Oracle         (Enterprise, high-performance)
+Sqlite         (Lightweight, file-based)
+
+All these are different engines,
+and they all use the same SQL language.
+
+
+
+
+
+
+So the mind map is this:
+
+1) We write SQL in our C# code to create
+commands for database engine.
+
+2) Database Engine (e.g. MySQL) reads
+our SQL commands and executes them on database.
+
+3) Database is stored in files and has actual
+data (Tables, Rows, Columns).
+
+4) The data from database comes back to our
+C# code and we use it further in our app.
+
+
+
+
+
+
+
+
+
+
+
+
+Data types
+
+
+
+
+
+In this course we are going to use
+lightweight Sqlite Database Engine.
+
+It doesn't require installation, you can
+clone SQLie database as simple file
+from git repo. It doesn't have settings
+or set up issues for students.
+
+
+
+This engine has its own set of data types,
+sometimes different from other popular
+database engines.
+
+
+Sqlite data types
+
+TEXT - for text (string in C#)
+INTEGER - for whole numbers (int in C#) or booleans (bool in C#)
+REAL - for decimal numbers (decimal in C#)
+
+For booleans Sqlite uses INTEGER type saving:
+
+0 = false
+1 = true
+
+
+
+
+
+
+Why data type matter?
+
+
+Data types allow to maintain:
+
+- Data integrity
+- Performance
+
+
+Data Integrity is when data is not corrupted.
+
+
+Example
+
+Assume we have this SQL code:
+
+CREATE TABLE Products (
+    ProductID     INTEGER,
+    ProductName   TEXT,
+    Price         REAL,
+    IsAvailable   INTEGER,
+);
+
+It creates a table 'Products' with columns:
+
+    ProductID
+    ProductName
+    Price
+    IsAvailable
+
+For example, column 'ProductID' has type INTEGER.
+That means that we can save only whole numbers (integers)
+into this column and nothing else.
+
+Good:
+
+INSERT INTO Products (ProductID) VALUES (87);
+
+Bad:
+
+INSERT INTO Products (ProductID) VALUES ('87');
+
+
+This will cause SQL command to fail. This is how
+Database engine protects data integrity.
+
+
+
+
+Performance is when queries on the database run
+quick.
+
+If you are comparing two numbers, it will run fast:
+
+WHERE Age > 18          -- ✅ Fast (number comparison)
+
+If you are comparing two texts, it runs slower:
+
+WHERE Age > '18'        -- ❌ Slow (text comparison)
+
+Keep this in mind when you design your database.
+
+If you create a column which in the future
+would be extensively used in your SQL queries,
+consider making it of INTEGER type, not TEXT.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Basic SQL syntax
+
+
+
+SQL Operations
+
+
+SQL has 4 main operations - often called CRUD:
+
+Create → INSERT
+
+Read → SELECT
+
+Update → UPDATE
+
+Delete → DELETE
+
+
+
+
+
+1. SELECT - Reading Data
+
+We need to specify what we select and from where:
+
+SELECT <what (column name)> FROM <where (table name)>;
+
+
+Example
+
+table: customers
++----+------------+-------------------+----------+
+| ID | Name       | Email             | City     |
++----+------------+-------------------+----------+
+| 1  | John Doe   | john@email.com    | New York |
+| 2  | Jane Smith | jane@email.com    | Chicago  |
+| 3  | Bob Wilson | bob@example.com   | Miami    |
++----+------------+-------------------+----------+
+
+SELECT ID FROM customers;
+
+Result:
+
++----+
+| ID |
++----+
+| 1  |
+| 2  |
+| 3  |
++----+
+
+
+SELECT Name, City FROM customers;
+
+Result:
+
++------------+----------+
+| Name       | City     |
++------------+----------+
+| John Doe   | New York |
+| Jane Smith | Chicago  |
+| Bob Wilson | Miami    |
++------------+----------+
+
+
+
+SELECT ID, Name, Email, City FROM customers;
+SELECT * FROM Customers;
+
+Both these queries do exactly the same:
+get all records/rows from Customers table.
+
++----+------------+-------------------+----------+
+| ID | Name       | Email             | City     |
++----+------------+-------------------+----------+
+| 1  | John Doe   | john@email.com    | New York |
+| 2  | Jane Smith | jane@email.com    | Chicago  |
+| 3  | Bob Wilson | bob@example.com   | Miami    |
++----+------------+-------------------+----------+
+
+
+
+WHERE clause
+
+You can limit or filter your results.
+What if I don't want all records like this:
+
+SELECT Name, City FROM customers;
+
++------------+----------+
+| Name       | City     |
++------------+----------+
+| John Doe   | New York |
+| Jane Smith | Chicago  |
+| Bob Wilson | Miami    |
++------------+----------+
+
+I want these columns only under one condition.
+This condition is placed in WHERE clause:
+
+SELECT Name, City FROM customers WHERE ID = 1;
+
++------------+----------+
+| Name       | City     |
++------------+----------+
+| John Doe   | New York |
++------------+----------+
+
+
+
+
+Or this:
+
+SELECT Name, City FROM customers WHERE ID > 1;
+
++------------+----------+
+| Name       | City     |
++------------+----------+
+| Jane Smith | Chicago  |
+| Bob Wilson | Miami    |
++------------+----------+
+
+
+If you need an ID, add it to SELECT:
+
+SELECT Name, City, ID FROM customers WHERE ID > 1;
+
++------------+---------------+
+| Name       | City     | ID |
++------------+----------+----+
+| Jane Smith | Chicago  | 2  |
+| Bob Wilson | Miami    | 3  |
++------------+----------+----+
+
+The order of columns in your SELECT statement
+determines their order in the result.
+SQL doesn't maintain the original table's column order.
+
+
+
+
+I can have more than one condition
+and combine it with AND or OR.
+
+
+SELECT * FROM customers WHERE ID > 1 OR City = 'New York';
+
++----+------------+-------------------+----------+
+| ID | Name       | Email             | City     |
++----+------------+-------------------+----------+
+| 1  | John Doe   | john@email.com    | New York |
+| 2  | Jane Smith | jane@email.com    | Chicago  |
+| 3  | Bob Wilson | bob@example.com   | Miami    |
++----+------------+-------------------+----------+
+
+
+You may get 0 rows result (AND clause):
+
+
+SELECT * FROM customers WHERE ID > 1 AND City = 'New York';
+
++----+------------+-------------------+----------+
+| ID | Name       | Email             | City     |
++----+------------+-------------------+----------+
+(0 rows)
+
+
+For this case in your C# you would add a check:
+
+C#
+using (var reader = command.ExecuteReader())
+{
+    if (reader.HasRows)
+    {
+        while (reader.Read())
+        {
+            Console.WriteLine(reader["Name"]);
+        }
+    }
+    else
+    {
+        Console.WriteLine("No customers match your criteria.");
+    }
+}
+
+
+
+
+
+
+
+
+
+2. INSERT - Adding New Data
+
+Basic Syntax:
+
+INSERT INTO <where (table name)> (<which columns>)
+VALUES (<which values>);
+
+
+
+Example
+
+Add a New Customer:
+
+
+INSERT INTO customers (ID, Name, Email, City)
+VALUES (4, 'Alice Brown', 'alice@email.com', 'Boston');
+
+
+Result:
+
++----+-------------+------------------+----------+
+| ID | Name        | Email            | City     |
++----+-------------+------------------+----------+
+| 1  | John Doe    | john@email.com   | New York |
+| 2  | Jane Smith  | jane@email.com   | Chicago  |
+| 3  | Bob Wilson  | bob@example.com  | Miami    |
+| 4  | Alice Brown | alice@email.com  | Boston   |  ← New row!
++----+-------------+------------------+----------+
+
+
+You can insert many records with one query:
+
+INSERT INTO customers (ID, Name, Email, City)
+VALUES
+    (5, 'Mike Johnson', 'mike@email.com', 'Seattle'),
+    (6, 'Sarah Davis', 'sarah@email.com', 'Denver');
+
+
+
+If column allows null values and you omit
+column name, NULL will be inserted:
+
+INSERT INTO customers (ID, Name) VALUES (7, 'Tom Wilson');
+
++----+------------+-------+------+
+| ID | Name       | Email | City |
++----+------------+-------+------+
+| 7  | Tom Wilson | NULL  | NULL |
++----+------------+-------+------+
+
+
+
+You don't need to maintain order of the columns
+in your INSERT statement to match your Database column order.
+
+It should only match between INSERT INTO and VALUES:
+
+INSERT INTO customers (Name, ID) VALUES ('Tom Wilson', 7);
+
+
+
+You can't use WHERE clause with INSERT!
+
+Error:
+INSERT INTO customers (Name, ID) VALUES ('Tom Wilson', 7)
+WHERE ID > 10;
+
+
+
+
+
+
+
+
+
+
+3. UPDATE - Modifying Existing Data
+
+Basic Syntax:
+
+UPDATE <where (table_name)>
+SET column1 = value1, column2 = value2
+WHERE condition;
+
+
+
+Example
+
+UPDATE customers SET City = 'Miami' WHERE ID = 1;
+
++----+------------+-------------------+----------+
+| ID | Name       | Email             | City     |
++----+------------+-------------------+----------+
+| 1  | John Doe   | john@email.com    | Miami    |
+| 2  | Jane Smith | jane@email.com    | Chicago  |
+| 3  | Bob Wilson | bob@example.com   | Miami    |
++----+------------+-------------------+----------+
+
+
+
+
+⚠️ IMPORTANT: Always use WHERE clause!
+
+If you forget WHERE clause, UPDATE command will
+update entire table for all customers! (❌ DANGEROUS)
+
+
+Example
+
+UPDATE customers SET City = 'Miami';
+
++----+------------+-------------------+----------+
+| ID | Name       | Email             | City     |
++----+------------+-------------------+----------+
+| 1  | John Doe   | john@email.com    | Miami    |
+| 2  | Jane Smith | jane@email.com    | Miami    |
+| 3  | Bob Wilson | bob@example.com   | Miami    |
++----+------------+-------------------+----------+
+
+
+4. DELETE - Removing Data
+
+Basic Syntax:
+
+DELETE FROM <where (table_name)> WHERE condition;
+
+Example
+
+DELETE FROM customers WHERE ID = 3;
+
+Before:
+
++----+------------+-------------------+----------+
+| ID | Name       | Email             | City     |
++----+------------+-------------------+----------+
+| 1  | John Doe   | john@email.com    | New York |
+| 2  | Jane Smith | jane@email.com    | Chicago  |
+| 3  | Bob Wilson | bob@example.com   | Miami    |
++----+------------+-------------------+----------+
+
+After:
+
++----+------------+-------------------+----------+
+| ID | Name       | Email             | City     |
++----+------------+-------------------+----------+
+| 1  | John Doe   | john@email.com    | New York |
+| 2  | Jane Smith | jane@email.com    | Chicago  |
++----+------------+-------------------+----------+
+
+⚠️ IMPORTANT: Always use WHERE clause!
+
+
+
+
+
+
+❌ DANGEROUS: Deletes ALL customers!
+
+DELETE FROM customers;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+How do we write SQL in our C# code?
+
+
+You can't simply write this:
+
+C#
+class Program
+{
+    public string query = "SELECT * FROM customers WHERE ID > 1";
+}
+
+This is just a string - it doesn't DO anything with the database!
+
+
+
+
+
+
+ADO.NET
+
+
+In .NET ecosystem we use ADO.NET library
+for "talking" to DB.
+
+
+
+
+High-Level Overview
+
+
+Step 1: Open Connection to Database
+Step 2: Prepare SQL Query with Connection
+Step 3: Execute the Query
+Step 4: Use Data in C# (Independent of Database)
+Step 5: Close Connection
+
+
+
+
+
+Step 1. Connection
+
+We need to establish a secure channel to
+the database server. When creating the connection,
+we provide username and password.
+
+Server verifies you have permission to access.
+
+You also specify which database to use.
+
+Network connection is established.
+
+You cannot "talk" to the database without a connection.
+
+
+
+
+
+
+Step 2. SQL query
+
+Create the command (SELECT, INSERT, etc.)
+you want to execute.
+
+You associate this SQL with the specific
+open connection.
+
+The command "knows" which database to send
+the request to.
+
+
+
+
+
+
+Step 3. Execute query
+
+Database receives and processes your SQL.
+Once query is executed we will get results back.
+
+What we get back:
+
+SELECT -> data rows
+INSERT -> number of affected rows
+UPDATE -> number of affected rows
+DELETE -> number of affected rows
+
+For example,
+
+SQL
+UPDATE customers SET City = 'Miami' WHERE ID = 1;
+
+Returns 1. Because it affected, changed, one row.
+
+
+
+
+
+
+
+Step 4. Use data in C#
+
+Data coming from SELECT query
+is copied from database into C#
+variables or objects - you code this.
+
+You can do whatever you want with it,
+the data in database stays unchanged.
+
+
+
+
+
+
+
+⚠️ CRITICAL
+Step 5. Close connection
+
+We need to close connection in order to
+free up database resources
+- memory allocated to our connection.
+
+If you don't close the connection
+other users might get "too many connections" errors.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ADO.NET Objects for Sqlite DB:
+
+SqliteConnection
+SqliteCommand
+SqliteDataReader
+
+
+
+
+
+SqliteConnection
+
+Object for establishing the connection. It needs
+connection string. Connection string specifies which
+database to connect to.
+
+Example
+
+string connectionString = "Data Source=mydatabase.db;Version=3;";
+
+Here:
+
+mydatabase.db - file name where we store our Sqlite database.
+
+
+
+We prepare connection (not opened yet) by creating
+SqlConnection object and passing connection string to its
+constructor.
+
+Example
+
+using (SqliteConnection connection = new SqliteConnection(connectionString))
+{
+    // Connection is ready but not open yet
+}
+
+
+
+
+SqliteCommand
+
+We prepare SQL query as a simple string:
+
+string sql = "SELECT * FROM customers WHERE ID > 1";
+
+Next we create SqlCommand object and pass query string
+and connection to it:
+
+SqliteCommand command = new SqliteCommand(sql, connection);
+
+
+
+
+
+
+SqliteDataReader
+
+A fast, forward-only stream of data.
+
+To execute it we:
+
+- open connection
+- execute query
+
+Example
+
+using (SqliteConnection connection = new SqliteConnection(connectionString))
+{
+    SqliteCommand command = new SqliteCommand(sql, connection);
+
+    connection.Open();
+
+    using (SqliteDataReader reader = command.ExecuteReader())
+    {
+        // Process the results
+    }
+}
+
+
+
+
+We can have different Execution Methods:
+
+
+SELECT -> ExecuteReader()
+INSERT, UPDATE, DELETE -> ExecuteNonQuery()
+
+
+Example SELECT:
+
+using (SqliteDataReader reader = command.ExecuteReader())
+{
+    while (reader.Read())
+    {
+        // Process each row
+    }
+}
+
+
+
+
+Example INSERT:
+
+string sql = "INSERT INTO Customers (Name) VALUES ('Andrei')";
+
+SqliteCommand command = new SqliteCommand(sql, connection);
+
+int rowsInserted = command.ExecuteNonQuery();
+
+
+
+
+
+
+
+When we have got data from the DB,
+we need to save it into variables in C#.
+
+while (reader.Read())
+{
+    int id = (int)reader["CustomerID"];
+    string name = reader["Name"] as string;
+
+    Console.WriteLine($"{id}: {name}");
+}
+
+
+
+
+reader object is like a bookmark of current row
+of data:
+
+while (reader.Read())  // Get row of data
+{
+    // NOW we can read the current row!
+    int id = (int)reader["CustomerID"];
+    string name = reader["Name"] as string;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Example
+
+C#
+
+using System;
+using System.Data.Sqlite;
+
+class Program
+{
+    static void Main()
+    {
+        // STEP 1: Connection String (Authentication + Database selection)
+        string connectionString = "Data Source=MyShop.db;Version=3;";
+
+        // STEP 2: SQL Query
+        string sql = "SELECT ID, Name, Email FROM Customers WHERE ID > 1";
+
+        try
+        {
+            // USING ensures connection is closed even if errors occur
+            using (SqliteConnection connection = new SqliteConnection(connectionString))
+            {
+                // STEP 1: OPEN CONNECTION
+                connection.Open();
+                Console.WriteLine("✅ Connected to database");
+
+                // STEP 2: PREPARE QUERY WITH CONNECTION
+                using (SqliteCommand command = new SqliteCommand(sql, connection))
+                {
+                    // STEP 3: EXECUTE QUERY AND GET RESULTS
+                    using (SqliteDataReader reader = command.ExecuteReader())
+                    {
+                        Console.WriteLine("📊 Query executed, reading data...");
+
+                        // STEP 4: USE DATA IN C# (now independent of database)
+                        while (reader.Read())
+                        {
+                            // Data is copied from DB to C# variables
+                            int id = reader.GetInt32("ID");
+                            string name = reader.GetString("Name");
+                            string email = reader.GetString("Email");
+
+                            // We can now work with this data freely
+                            Console.WriteLine($"C# Variable - ID: {id}, Name: {name}, Email: {email}");
+
+                            // Modifying C# variables doesn't affect database
+                            name = name.ToUpper(); // Only changes local copy
+                        }
+                    }
+                }
+
+                // STEP 5: CONNECTION AUTOMATICALLY CLOSED HERE (thanks to 'using')
+            }
+            Console.WriteLine("✅ Connection closed automatically");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error: {ex.Message}");
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Thank you!
+
+
