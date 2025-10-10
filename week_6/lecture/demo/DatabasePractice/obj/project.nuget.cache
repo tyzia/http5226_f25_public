@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "fduW095YORs=",
+  "dgSpecHash": "DRHbEjVAYtY=",
   "success": true,
-  "projectFilePath": "/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/http5226_f25_private/week_6/lecture/demo/DatabaseDemo/DatabaseDemo.csproj",
+  "projectFilePath": "/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/http5226_f25_private/week_6/lecture/demo/DatabasePractice/DatabasePractice.csproj",
   "expectedPackageFiles": [
     "/Users/andreinavumau/.nuget/packages/microsoft.data.sqlite/9.0.9/microsoft.data.sqlite.9.0.9.nupkg.sha512",
     "/Users/andreinavumau/.nuget/packages/microsoft.data.sqlite.core/9.0.9/microsoft.data.sqlite.core.9.0.9.nupkg.sha512",

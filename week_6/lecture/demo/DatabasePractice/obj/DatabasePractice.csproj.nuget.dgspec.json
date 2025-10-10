@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/http5226_f25_private/week_6/lecture/demo/DatabaseDemo/DatabaseDemo.csproj": {}
+    "/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/http5226_f25_private/week_6/lecture/demo/DatabasePractice/DatabasePractice.csproj": {}
   },
   "projects": {
-    "/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/http5226_f25_private/week_6/lecture/demo/DatabaseDemo/DatabaseDemo.csproj": {
+    "/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/http5226_f25_private/week_6/lecture/demo/DatabasePractice/DatabasePractice.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/http5226_f25_private/week_6/lecture/demo/DatabaseDemo/DatabaseDemo.csproj",
-        "projectName": "DatabaseDemo",
-        "projectPath": "/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/http5226_f25_private/week_6/lecture/demo/DatabaseDemo/DatabaseDemo.csproj",
+        "projectUniqueName": "/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/http5226_f25_private/week_6/lecture/demo/DatabasePractice/DatabasePractice.csproj",
+        "projectName": "DatabasePractice",
+        "projectPath": "/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/http5226_f25_private/week_6/lecture/demo/DatabasePractice/DatabasePractice.csproj",
         "packagesPath": "/Users/andreinavumau/.nuget/packages/",
-        "outputPath": "/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/http5226_f25_private/week_6/lecture/demo/DatabaseDemo/obj/",
+        "outputPath": "/Users/andreinavumau/Documents/Humber_College/courses/fall_2025/http5226_f25/http5226_f25_private/week_6/lecture/demo/DatabasePractice/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/andreinavumau/.nuget/NuGet/NuGet.Config"

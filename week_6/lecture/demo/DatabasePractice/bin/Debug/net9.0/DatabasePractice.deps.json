@@ -6,12 +6,12 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v9.0": {
-      "DatabaseDemo/1.0.0": {
+      "DatabasePractice/1.0.0": {
         "dependencies": {
           "Microsoft.Data.Sqlite": "9.0.9"
         },
         "runtime": {
-          "DatabaseDemo.dll": {}
+          "DatabasePractice.dll": {}
         }
       },
       "Microsoft.Data.Sqlite/9.0.9": {
@@ -179,7 +179,7 @@
     }
   },
   "libraries": {
-    "DatabaseDemo/1.0.0": {
+    "DatabasePractice/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
