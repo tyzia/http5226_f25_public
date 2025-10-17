@@ -1,0 +1,1449 @@
+
+
+
+
+
+
+
+
+
+
+Plan
+
+
+Parameterized Queries
+Parameter
+4 ways to create a parameter
+Risks of wrong type assertions & poor performance
+Handling NULL values
+"Happy path"
+DBNull
+Parameterized Queries Examples
+Maintaining the connection
+using
+in-class practice
+SqliteDataReader
+reader.IsDBNull
+ExecuteScalar()
+
+
+
+
+
+
+
+
+
+
+
+Parameterised Queries
+
+
+
+
+
+
+We should never trust user input and add
+it directly into our SQL queries!
+
+
+
+
+Bad:
+
+string sql = $"INSERT INTO Customers (Name) VALUES ('{userInput}')";
+
+Good (parameterized query):
+
+using (Command command = new SqliteCommand(sql, connection))
+{
+    string sql = "INSERT INTO Customers (Name) VALUES (@Name)";
+    command.Parameters.AddWithValue("@Name", userInput);
+}
+
+
+
+
+
+
+
+
+
+
+
+A Parameter lets you place variable information into SQL statement.
+
+When you use a parameter in SQL query, it is called
+"parameterised query".
+
+Parameters in Sqlite start with @ (ex. @Customer)
+
+
+
+
+
+
+
+
+These placeholders in SQL query are later
+replaced with actual values in a safe, structured way.
+
+This allows to:
+
+1) Prevent SQL injection attacks ('; DROP TABLE Customers; --).
+2) Improve performance (Database can cache and reuse them).
+3) Type Safety.
+4) Proper handling of special characters and NULL values.
+
+
+
+
+
+
+
+
+
+You can use parameters for:
+
+- WHERE clause (ex. ... WHERE CustomerID = @CustomerID)
+- INSERT statement (ex. INSERT INTO Customers (Name) VALUES (@Name))
+- UPDATE statement (ex. UPDATE Customers SET CustomerID = @CustomerID)
+- DELETE statement (ex. DELETE FROM Customers WHERE CustomerID = @CustomerID)
+
+
+
+
+
+
+
+To use parameters, you:
+
+1) Code a SQL statement with placeholders for the parameters.
+2) Create a parameter object defining each parameter.
+3) Add parameter object to the Parameters collection of the command.
+
+
+
+
+
+
+
+
+Step 1. Code SQL with placeholders
+
+string sql = "INSERT INTO Customers (Name) VALUES (@Name)";
+
+Here:
+
+@Name is a placeholder for parameter "Name".
+
+
+Step 2. Create a parameter object.
+
+You can create a parameter in 4 different ways:
+
+- AddWithValue(name, value)
+- Add(parameter) // recommended
+- Add(name, type)
+- Add(name, type, size)
+
+
+
+
+
+
+
+
+AddWithValue(name, value)
+
+
+
+
+
+
+
+
+It is the easiest but least safe method.
+
+
+Example
+
+string sql = "INSERT INTO Customers (Name, Email) VALUES (@Name, @Email)";
+using SqliteCommand command = new SqliteCommand(sql, connection);
+
+command.Parameters.AddWithValue("@Name", "John Doe");
+command.Parameters.AddWithValue("@Email", "john@email.com");
+
+Here:
+
+- We create SQL query with placeholders for Name & Email.
+- We create a command object for this SQL query.
+- We add parameters to Parameters collection of the command object.
+
+You may notice that this is the only command  to do
+Steps 2 & 3 in one go.
+
+
+Risks:
+
+- Type assumption can be wrong
+
+Example:
+
+In our Database we have a column:
+name Quantity, type INT.
+
+command.Parameters.AddWithValue("@Quantity", 5.0);
+
+From this notation (5.0) C# compiler will assume
+its type as double, not int and send it to DB.
+
+DB will fail the query, because you can't save
+double value into a column of type INT.
+
+
+
+- Potential performance issues
+
+
+Example:
+
+In our Database we have a column:
+name Price, type DECIMAL(10,2).
+
+command.Parameters.AddWithValue("@Price", 9.99);
+
+From this notation (9.99) C# compiler will assume
+its type as double, not decimal and send it to DB.
+
+DB will convert double to decimal at performance cost.
+
+
+
+
+
+
+
+
+
+
+Add(parameter)
+
+
+
+
+
+
+
+
+
+
+
+This is the recommended way to create parameterized queries.
+
+We create a SqlParameter first.
+Next we add it to Parameters collection.
+
+
+Example
+
+string sql = "INSERT INTO Customers (Name, Email, Age) VALUES (@Name, @Email, @Age)";
+using SqliteCommand command = new SqliteCommand(sql, connection);
+
+SqliteParameter nameParam = new SqliteParameter("@Name", DbType.String);
+nameParam.Value = "John Doe";
+command.Parameters.Add(nameParam);
+
+SqliteParameter emailParam = new SqliteParameter("@Email", DbType.String);
+emailParam.Value = "john@email.com";
+command.Parameters.Add(emailParam);
+
+SqliteParameter ageParam = new SqliteParameter("@Age", DbType.Int32);
+ageParam.Value = 30;
+command.Parameters.Add(ageParam);
+
+
+
+Or short notation:
+
+
+string sql = "INSERT INTO Customers (Name, Email, Age) VALUES (@Name, @Email, @Age)";
+using SqliteCommand command = new SqliteCommand(sql, connection);
+
+command.Parameters.Add(new SqliteParameter("@Name", DbType.String) { Value = "John Doe" });
+command.Parameters.Add(new SqliteParameter("@Email", DbType.String) { Value = "john@email.com" });
+command.Parameters.Add(new SqliteParameter("@Age", DbType.Int32) { Value = 30 });
+
+
+
+
+
+
+
+
+
+Add(name, type)
+
+
+
+
+
+
+
+
+
+
+We can avoid creating SqliteParameter and still specify
+the type of data with this command. This gives us
+a good balance between less verbose code & type safety.
+
+
+Example
+
+string sql = "INSERT INTO Customers (Name, Email, Balance) VALUES (@Name, @Email, @Balance)";
+using var command = new SqlCommand(sql, connection);
+
+command.Parameters.Add("@Name", DbType.String).Value = "John Doe";
+command.Parameters.Add("@Email", DbType.String).Value = "john@email.com";
+command.Parameters.Add("@Balance", DbType.Decimal).Value = 9.99m;
+
+
+Here we used chaining method.
+
+- Add() returns an object
+- this object has Value property
+- we use Value property to set value
+
+
+Other way to write the same code:
+
+SqliteParameter param = command.Parameters.Add("@Name", DbType.String);
+param.Value = "John Doe";
+
+
+
+
+
+
+
+
+
+
+
+
+
+Add(name, type, size)
+
+
+
+
+
+
+
+
+This is not relevant to Sqlite Database engine which
+we use for the course, because this engine doesn't
+support sizes.
+
+For overall awareness:
+
+
+string sql = "INSERT INTO Customers (Name, Email, Phone) VALUES (@Name, @Email, @Phone)";
+using var command = new SqlCommand(sql, connection);
+
+command.Parameters.Add("@Name", SqlDbType.NVarChar, 100).Value = "John Doe";
+command.Parameters.Add("@Email", SqlDbType.NVarChar, 255).Value = "john@email.com";
+command.Parameters.Add("@Phone", SqlDbType.VarChar, 20).Value = "123-456-7890";
+
+Here:
+
+- We specify the name of parameter (ex. @Email)
+- We specify the type of parameter (ex. SqlDbType.NVarChar)
+- We specify the size of parameter (ex. 255), which is number of characters.
+
+
+
+
+
+
+
+
+
+As mentioned above - best practice is to
+use Add(name, type).
+
+
+
+
+
+
+
+
+
+
+
+Handling NULL values
+
+
+
+
+We should always handle potential NULL values
+from our application data before passing them
+to database parameters.
+
+Essentially this means to check if value is not null.
+
+In case it is null, we need to define a default
+value, even null (database null).
+
+
+
+Example
+
+command.Parameters.Add("@Phone", DbType.String).Value =
+    string.IsNullOrEmpty(customer.Phone) ? (object)DBNull.Value : customer.Phone;
+
+command.Parameters.Add("@Age", DbType.Int32).Value =
+    customer.Age ?? (object)DBNull.Value;
+
+
+
+
+
+
+
+
+
+
+Happy path
+
+
+
+
+
+
+
+One thing to mention: try to place your
+"happy path" first, and after that any
+other or default fallback logic.
+
+This applies to any of your code,
+not just to Parameterized queries.
+
+
+Let's say you want to assign Phone value
+to your parameter. If it is null or undefined,
+you would like to set a default value.
+
+Most of the time you would
+have a Phone value in your code. This is
+considered normal, this is your "happy path".
+But you need to account for
+edge cases - when something is missing or wrong.
+
+
+Example
+
+(both work, but "Good" is recommended)
+
+
+Bad
+
+command.Parameters.Add("@Phone", DbType.String).Value =
+    string.IsNullOrEmpty(customer.Phone) ? (object)DBNull.Value : customer.Phone;
+
+Good
+
+command.Parameters.Add("@Phone", DbType.String).Value =
+    !string.IsNullOrEmpty(customer.Phone) ? customer.Phone : (object)DBNull.Value;
+
+
+Here we switched the logic of IF condition to:
+
+- first check for "happy path"
+- second check for edge case
+
+
+
+
+
+
+
+
+DBNull
+
+
+
+
+
+
+
+
+
+(object)DBNull.Value
+
+In C# null value which can be used in the
+Database, can't be just "null". There is a special
+class for this case: DBNull.
+
+We need to use DBNull.Value because it is legacy
+approach how we can get "null" for Database.
+
+Why we cast DBNull.Value to object?
+
+(object)DBNull.Value
+
+
+This is the case of ?? operator, which does two things:
+
+1. Checks if left-hand side value is null or undefined
+2. Makes sure that both sides are either of the same
+type or explicit casting is used.
+
+That's why we have:
+
+email ?? (object)DBNull.Value
+
+Which essentially means:
+"Set value to the value of email variable or to database null value"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Common Data Types
+
+
+
+For TEXT (names, emails, descriptions)
+DbType.String
+
+For INTEGER (ID, age, quantity)
+DbType.Int32
+
+For REAL (prices, money, precise calculations)
+DbType.Decimal
+
+For INTEGER (0/1)
+DbType.Boolean
+
+For TEXT used for dates and timestamps
+DbType.DateTime
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Validate Input
+
+
+
+Before adding to parameters it is a good
+idea to validate input with custom methods.
+
+
+Example
+
+public void AddCustomer(string name, string email)
+{
+    if (string.IsNullOrWhiteSpace(name))
+        throw new ArgumentException("Name cannot be empty");
+
+    if (!IsValidEmail(email))
+        throw new ArgumentException("Invalid email format");
+
+    string sql = "INSERT INTO Customers (Name, Email) VALUES (@Name, @Email)";
+    using (SqliteCommand command = new SqliteCommand(sql, connection))
+    {
+        command.Parameters.Add(new SqliteParameter("@Name", DbType.String) {
+            Value = name.Trim()
+        });
+        command.Parameters.Add(new SqliteParameter("@Email", DbType.String) {
+            Value = email?.ToLower().Trim() ?? (object)DBNull.Value
+        });
+
+        int rowsInserted = command.ExecuteNonQuery();
+        Console.WriteLine($"Inserted {rowsInserted} row(s)");
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Parameterized Queries Examples
+
+
+
+
+
+Example (INSERT)
+
+using System;
+using Microsoft.Data.Sqlite;
+
+public class CustomerRepository
+{
+    private SqliteConnection connection;
+
+    // ... connection logic here
+
+    public void AddCustomer(string name, string email)
+    {
+        string sql = "INSERT INTO Customers (Name, Email, Price) " +
+                     "VALUES (@Name, @Email, @Price)";
+
+        using (SqliteCommand command = new SqliteCommand(sql, connection))
+        {
+            command.Parameters.Add(new SqliteParameter("@Name", DbType.String) { Value = name });
+            command.Parameters.Add(new SqliteParameter("@Email", DbType.String) {
+                Value = email ?? (object)DBNull.Value
+            });
+            command.Parameters.Add(new SqliteParameter("@Price", DbType.Decimal) { Value = 9.99m });
+
+            int rowsInserted = command.ExecuteNonQuery();
+            Console.WriteLine($"Inserted {rowsInserted} row(s)");
+        }
+    }
+}
+
+
+
+
+If I would like to use this code to
+actually add data into my Database I would:
+
+CustomerRepository repo = new CustomerRepository();
+repo.AddCustomer("Andrei", "email@email.com");
+
+
+
+
+
+
+
+
+
+
+
+Example (SELECT)
+
+string sql = "SELECT Name, Email FROM Customers WHERE Email = @Email AND IsActive = @IsActive";
+
+SqliteCommand command = new SqliteCommand(sql, connection);
+command.Parameters.Add(new SqliteParameter("@Email", DbType.String) { Value = "john@email.com" });
+command.Parameters.Add(new SqliteParameter("@IsActive", DbType.Boolean) { Value = true });
+
+using (SqliteDataReader reader = command.ExecuteReader())
+{
+    while (reader.Read())
+    {
+        Console.WriteLine($"Name: {reader["Name"]}, Email: {reader["Email"]}");
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+Example (UPDATE)
+
+string sql = "UPDATE Customers SET Email = @Email, Phone = @Phone WHERE CustomerId = @CustomerId";
+
+SqliteCommand command = new SqliteCommand(sql, connection);
+command.Parameters.Add(new SqliteParameter("@Email", DbType.String) { Value = "newemail@example.com" });
+command.Parameters.Add(new SqliteParameter("@Phone", DbType.String) { Value = "123-456-7890" });
+command.Parameters.Add(new SqliteParameter("@CustomerId", DbType.Int32) { Value = 123 });
+
+int rowsUpdated = command.ExecuteNonQuery();
+Console.WriteLine($"Updated {rowsUpdated} row(s)");
+
+
+
+
+
+
+
+
+
+
+
+
+
+Example (DELETE)
+
+string sql = "DELETE FROM Customers WHERE CustomerId = @CustomerId";
+
+SqliteCommand command = new SqliteCommand(sql, connection);
+command.Parameters.Add(new SqliteParameter("@CustomerId", DbType.Int32) { Value = 456 });
+int rowsDeleted = command.ExecuteNonQuery();
+Console.WriteLine($"Deleted {rowsDeleted} row(s)");
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Maintaining the connection.
+
+
+
+
+You remember from previous lecture
+that we always need to open a connection to
+Database first, run our queries and always
+close the connection in the end.
+
+
+Example
+
+SqliteConnection connection = new SqliteConnection(connectionString);
+connection.Open(); // crash #1
+
+SqliteCommand command = new SqliteCommand(sql, connection);
+command.ExecuteNonQuery(); // crash #2
+
+connection.Close();
+
+
+Potential problems:
+
+1) If connection fails to Open, the app will crash.
+2) If query fails, the app will crash and connection
+will not be closed, it will be kept open leading to memory leak.
+
+
+
+Connection.Open() ALWAYS throws exception on failure.
+
+Possible reasons:
+
+- Database file doesn't exist
+- Invalid connection string
+- File permissions issues
+- Database is corrupted
+- Network issues
+
+
+
+
+A better way to handle potential errors
+is to use try-catch block.
+
+
+Example
+
+
+
+SqliteConnection connection = new SqliteConnection(connectionString);
+
+try
+{
+    connection.Open();
+
+    SqliteCommand command = new SqliteCommand(sql, connection);
+    command.ExecuteNonQuery(); // crash #1
+
+    connection.Close();
+}
+catch (Exception ex)
+{
+    ...
+}
+
+
+In this case the app will not crash if connection
+fails to Open. Still we have one potential problem:
+
+1) If query fails, the app doesn't crash but connection
+will not be closed, it will be kept open leading to memory leak.
+
+
+
+
+
+
+
+
+
+Another way to improve this code is to
+add "finally" part.
+
+
+
+
+Example
+
+
+
+SqliteConnection connection = null;
+
+try
+{
+    connection = new SqliteConnection(connectionString);
+    connection.Open();
+
+    command.ExecuteNonQuery();
+
+    connection.Close();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Error: {ex.Message}");
+}
+finally
+{
+    command?.Dispose(); // ← Clean up command
+    connection?.Close(); // ← Ensures connection closed even if error
+}
+
+
+
+
+We have added command.Dispose().
+
+It is important step, because SqliteCommand contains:
+
+- Parameter collections
+- SQL query parsing
+- Database statement handle
+- Result set metadata
+
+All these require memory and resources. If we don't
+dispose them, this will cause a memory leak.
+
+
+
+
+
+
+
+
+
+A modern and the best approach -
+use "using" in your code.
+
+
+
+
+
+
+using
+
+
+
+
+This construct allows you to close the connection
+and dispose resources automatically.
+
+Example
+
+
+using (SqliteCommand command = new SqliteCommand(sql, connection))
+{
+    command.ExecuteNonQuery();
+    ...
+}
+
+
+The above is equivalent of this:
+
+SqliteCommand command = new SqliteCommand(sql, connection);
+try
+{
+    command.ExecuteNonQuery();
+    ...
+}
+finally
+{
+    command.Dispose(); // ← This always runs!
+}
+
+
+
+
+
+
+
+Example of complete cycle
+
+
+public void UpdateCustomerEmail(int customerId, string newEmail)
+{
+    using (SqliteConnection connection = new SqliteConnection(connectionString))
+    using (SqliteCommand command = new SqliteCommand(
+        "UPDATE Customers SET Email = @Email WHERE Id = @Id", connection))
+    {
+        connection.Open();
+
+        command.Parameters.Add(new SqliteParameter("@Email", DbType.String) {
+            Value = newEmail
+        });
+        command.Parameters.Add(new SqliteParameter("@Id", DbType.Int32) {
+            Value = customerId
+        });
+
+        int rowsAffected = command.ExecuteNonQuery();
+        Console.WriteLine($"Updated {rowsAffected} rows");
+    }
+}
+
+No need to worry about connection.Close() or command.Dispose()
+
+
+
+
+
+
+And a better version with graceful handling of
+any exceptions/errors:
+
+
+
+public bool UpdateCustomerEmail(int customerId, string newEmail)
+{
+    try
+    {
+        using (SqliteConnection connection = new SqliteConnection(connectionString))
+        using (SqliteCommand command = new SqliteCommand(
+            "UPDATE Customers SET Email = @Email WHERE Id = @Id", connection))
+        {
+            connection.Open();
+
+            command.Parameters.Add(new SqliteParameter("@Email", DbType.String) {
+                Value = newEmail
+            });
+            command.Parameters.Add(new SqliteParameter("@Id", DbType.Int32) {
+                Value = customerId
+            });
+
+            int rowsAffected = command.ExecuteNonQuery();
+            Console.WriteLine($"Updated {rowsAffected} rows");
+
+            return rowsAffected > 0;
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error updating customer email:: {ex.Message}");
+        return false;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Common mistakes to avoid
+
+
+
+❌ DANGEROUS
+
+1. String Concatenation (SQL Injection Risk)
+
+Example
+
+string sql = $"INSERT INTO Customers (Name) VALUES ('{userInput}')";
+
+Use parameterised query (see above).
+
+
+2. Not Handling NULL Values Properly
+
+
+Example
+
+command.Parameters.AddWithValue("@Phone", phone);
+
+Here, if phone is null, it might cause issues.
+
+Use ?? to set default value for nulls (see above).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+In-class practice
+
+
+Complete the following code:
+
+public class CustomerService
+{
+    private string _connectionString;
+
+    public CustomerService(string connectionString)
+    {
+        _connectionString = connectionString;
+    }
+
+    public bool RegisterCustomer(string name, string email, int? age)
+    {
+        // TODO: Implement using parameterized queries
+        // 1. Validate name is not null/empty
+        // 2. Create parameterized SQL query to add Name, Email, Age into Customers table
+        // 3. Use try-catch + using statements for connection and command
+        // 4. Use Add(parameter) approach
+        // 5. Handle NULL for Age properly with DBNull.Value
+        // 6. Return true if successful, false otherwise
+    }
+}
+
+
+
+
+
+
+
+
+
+
+SqliteDataReader
+
+
+
+
+This is the way to read data from DB
+and use it in our C# code.
+
+A forward-only, read-only stream of data
+from the database.
+
+Very fast and efficient for reading large result sets.
+
+It cannot go backwards!
+
+
+
+
+The Reader Lifecycle Pattern
+
+1) Check if we have any data (ex. reader.HasRows)
+2) Read row by row (ex. while (reader.Read()) { ... })
+3) Extract data from current row:
+
+ 3.1) By Column Name (recommended)
+ 3.2) By Column Index
+ 3.3) Using Indexer
+
+4) Reader auto closes and disposes (no action needed)
+
+
+
+
+When extracting data we use a 2-step approach:
+
+1) Find position of the column in result set.
+2) Get its value from result set.
+
+
+
+Step 1: reader.GetOrdinal("CustomerID")
+
+Finds the position of the "CustomerID" column in the result set
+Returns an integer (0, 1, 2, etc.) representing the column index
+
+
+Step 2: reader.GetInt32(columnIndex)
+
+Gets the actual value from that column position
+Converts it to the specified type (int32 in this case)
+Uses the index from Step 1 to know which column to read
+
+
+
+
+
+
+
+
+
+Example
+
+
+using (SqliteDataReader reader = command.ExecuteReader())
+{
+    if (!reader.HasRows) // Step 1
+    {
+        Console.WriteLine("No data found.");
+        return;
+    }
+
+    while (reader.Read()) // Step 2
+    {
+        // Step 3 (3.1)
+        int idIndex = reader.GetOrdinal("CustomerID");
+        int id = reader.GetInt32(idIndex);
+
+        string name = reader.GetString(reader.GetOrdinal("Name"));
+
+        // Handle NULL values safely
+        string email = reader.IsDBNull(reader.GetOrdinal("Email"))
+            ? "N/A"
+            : reader.GetString(reader.GetOrdinal("Email"));
+    }
+} // Step 4
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Handling Different Data Types
+
+
+
+reader.GetInt32 - integers
+reader.GetString - strings
+reader.GetDecimal - decimals
+reader.GetBoolean - booleans
+reader.GetDateTime - dates
+
+
+
+
+
+Example
+
+while (reader.Read())
+{
+    // Integers
+    int id = reader.GetInt32(reader.GetOrdinal("CustomerID"));
+
+    // Strings (with NULL handling)
+    string name = reader.GetString(reader.GetOrdinal("Name"));
+    string email = reader.IsDBNull(reader.GetOrdinal("Email"))
+        ? null
+        : reader.GetString(reader.GetOrdinal("Email"));
+
+    // Decimals
+    decimal balance = reader.GetDecimal(reader.GetOrdinal("Balance"));
+
+    // Booleans
+    bool isActive = reader.GetBoolean(reader.GetOrdinal("IsActive"));
+
+    // Dates
+    DateTime createdDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"));
+}
+
+
+
+
+
+
+
+
+reader.IsDBNull
+
+
+
+IsDBNull() is a method that checks if a
+database column contains a NULL value
+before you try to read it.
+
+
+❌ CRASH!
+
+string email = reader.GetString(reader.GetOrdinal("Email"));
+
+If Email is NULL in database
+this code will throw exception:
+
+"InvalidCastException: Unable to cast object of type 'DBNull' to type 'String'"
+
+
+
+✅ Solution
+
+string email = reader.IsDBNull(reader.GetOrdinal("Email"))
+    ? "N/A"
+    : reader.GetString(reader.GetOrdinal("Email"));
+
+
+This code checks for NULL first, provides default value.
+
+
+
+
+
+
+
+
+
+
+
+
+
+.ExecuteScalar()
+
+
+
+If you need single value from Database,
+you should use .ExecuteScalar().
+
+ExecuteScalar() returns the first column of the
+first row from the result set, or null
+if no data is found.
+
+
+When to use:
+
+- COUNT(*) - number of records
+- MAX/MIN/AVG - aggregate functions
+- SELECT SingleColumn - when you need one value
+- EXISTS queries - check if record exists
+
+
+
+Example
+
+
+string countSql = "SELECT COUNT(*) FROM Customers";
+using (var command = new SqliteCommand(countSql, connection))
+{
+    long totalCustomers = (long)command.ExecuteScalar();
+    Console.WriteLine($"Total customers: {totalCustomers}");
+}
+
+
+
+Example
+(check if email exists)
+
+
+string existsSql = "SELECT 1 FROM Customers WHERE Email = @Email";
+using (var command = new SqliteCommand(existsSql, connection))
+{
+    command.Parameters.Add(new SqliteParameter("@Email", DbType.String) {
+        Value = "test@email.com"
+    });
+
+    object result = command.ExecuteScalar();
+    bool doesEmailExist = result != null;
+    Console.WriteLine($"Email exists: {doesEmailExist}");
+}
+
+
+
+
+
+
+
+
+
+
+Common mistakes to avoid
+
+
+
+
+
+
+
+
+❌ Bad
+
+Forget while() loop and only get the first result,
+instead of showing all results.
+
+reader.Read();
+Console.WriteLine(reader["Name"]);
+
+
+✅ Good
+
+Use while (reader.Read()) { ... }
+
+while (reader.Read())
+{
+    Console.WriteLine(reader["Name"]);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+❌ Bad
+
+Not handling NULL values.
+
+string email = reader.GetString(reader.GetOrdinal("Email"));
+
+
+✅ Good
+
+Use reader.IsDBNull() to check for NULL the fields,
+which might have null value.
+
+string email = reader.IsDBNull(reader.GetOrdinal("Email"))
+    ? "N/A"
+    : reader.GetString(reader.GetOrdinal("Email"));
+
+
+
+
+
+
+
+
+
+❌ Bad
+
+Not using "using" statement.
+
+SqliteDataReader reader = command.ExecuteReader();
+
+
+✅ Good
+
+Use using construct.
+
+using (SqliteDataReader reader = command.ExecuteReader())
+{
+    ...
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Conditions in your code.
+
+
+
+When you have a task like:
+
+"Display products with price > $50"
+
+How do you approach it?
+
+1) Select all entries from database and sort in C#
+2) Use WHERE clause in your SQL statement and
+select only filtered results.
+
+
+The second approach is recommended.
+You always want to select the least result from the
+database.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Thank you!

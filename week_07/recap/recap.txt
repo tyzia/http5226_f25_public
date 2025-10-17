@@ -1,0 +1,175 @@
+Recap from Week 6
+(delivered on Week 7)
+
+
+We need Database for data persistence.
+(to save data)
+
+Database - a place where we store data
+in a structured way.
+
+Table - data is grouped inside
+Columns - define structure of data
+Rows - represent full set of data
+
++----+------------+-------------------+----------+
+| ID | Name       | Email             | City     |  ← Columns
++----+------------+-------------------+----------+
+| 1  | John Doe   | john@email.com    | New York |  ← Row 1
+| 2  | Jane Smith | jane@email.com    | Chicago  |  ← Row 2
+| 3  | Bob Wilson | bob@example.com   | Miami    |  ← Row 3
++----+------------+-------------------+----------+
+
+SQL is:
+
+- Not a database!
+- A language.
+
+We use SQL to communicate with databases.
+
+Database Engine - a software that understands
+SQL commands and executes them.
+
+Popular Database Engines:
+
+MySQL          (Popular, free, open-source)
+SQL Server     (Microsoft, enterprise-grade)
+Oracle         (Enterprise, high-performance)
+Sqlite         (Lightweight, file-based)
+
+Sqlite data types
+
+TEXT - for text (string in C#)
+INTEGER - for whole numbers (int in C#) or booleans (bool in C#)
+REAL - for decimal numbers (decimal in C#)
+
+Data types allow to maintain:
+
+- Data integrity
+- Performance
+
+You can't insert string into integer column:
+
+// error
+INSERT INTO Products (ProductID) VALUES ('87');
+
+
+
+CRUD examples
+
+Customers
++----+------------+-------------------+----------+
+| ID | Name       | Email             | City     |
++----+------------+-------------------+----------+
+| 1  | John Doe   | john@email.com    | New York |
+| 2  | Jane Smith | jane@email.com    | Chicago  |
+| 3  | Bob Wilson | bob@example.com   | Miami    |
++----+------------+-------------------+----------+
+
+SELECT Name, City, ID FROM customers WHERE ID > 1;
+
+Result
+
++------------+---------------+
+| Name       | City     | ID |
++------------+----------+----+
+| Jane Smith | Chicago  | 2  |
+| Bob Wilson | Miami    | 3  |
++------------+----------+----+
+
+The order of columns in your SELECT statement
+determines their order in the result.
+
+
+You may get 0 rows result (AND clause):
+
+SELECT * FROM customers WHERE ID > 1 AND City = 'New York';
+
++----+------------+-------------------+----------+
+| ID | Name       | Email             | City     |
++----+------------+-------------------+----------+
+(0 rows)
+
+Always check for empty result (ex. if (reader.HasRows) { ... })
+
+
+
+INSERT INTO customers (Name, Email, City, ID)
+VALUES ('Alice Brown', 'alice@email.com', 'Boston', 4);
+
+Result:
+
++----+-------------+------------------+----------+
+| ID | Name        | Email            | City     |
++----+-------------+------------------+----------+
+| 1  | John Doe    | john@email.com   | New York |
+| 2  | Jane Smith  | jane@email.com   | Chicago  |
+| 3  | Bob Wilson  | bob@example.com  | Miami    |
+| 4  | Alice Brown | alice@email.com  | Boston   |  ← New row!
++----+-------------+------------------+----------+
+
+
+If column allows null values and you omit
+column name, NULL will be inserted:
+
+INSERT INTO customers (ID, Name) VALUES (7, 'Tom Wilson');
+
++----+------------+-------+------+
+| ID | Name       | Email | City |
++----+------------+-------+------+
+| 7  | Tom Wilson | NULL  | NULL |
++----+------------+-------+------+
+
+
+You can't use WHERE clause with INSERT!
+
+Error:
+INSERT INTO customers (Name, ID) VALUES ('Tom Wilson', 7)
+WHERE ID > 10;
+
+
+
+
+UPDATE customers SET City = 'Miami' WHERE ID = 1;
+
++----+------------+-------------------+----------+
+| ID | Name       | Email             | City     |
++----+------------+-------------------+----------+
+| 1  | John Doe   | john@email.com    | Miami    | <- updated
+| 2  | Jane Smith | jane@email.com    | Chicago  |
+| 3  | Bob Wilson | bob@example.com   | Miami    |
++----+------------+-------------------+----------+
+
+
+
+⚠️ IMPORTANT: Always use WHERE clause!
+
+If you forget WHERE clause, UPDATE command will
+update entire table for all customers!
+
+
+
+
+
+DELETE FROM customers WHERE ID = 3;
+
++----+------------+-------------------+----------+
+| ID | Name       | Email             | City     |
++----+------------+-------------------+----------+
+| 1  | John Doe   | john@email.com    | New York |
+| 2  | Jane Smith | jane@email.com    | Chicago  |
+| 3  | Bob Wilson | bob@example.com   | Miami    | <- row will be deleted
++----+------------+-------------------+----------+
+
+
+
+
+ADO.NET - Library for "talking" to DB.
+
+Step 1: Open Connection to Database
+Step 2: Prepare SQL Query with Connection
+Step 3: Execute the Query
+Step 4: Use Data in C# (Independent of Database)
+Step 5: Close Connection ⚠️ CRITICAL
+
+
