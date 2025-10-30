@@ -1,162 +1,203 @@
-Recap from Week 3
+Recap from Week 4
 
 
+Class definition:
 
-Scientific notation
+- file name same as class:
 
-A short way to represent
-a very large or a very small number
+Student.cs
+class Student
+{
+    private string _name;
+    public string Name;
+}
 
-Example
+Here:
 
-8,000,000,000 -> 8e9
-0.000000000012 ->1.2e-11
+_name = field, used to store the data
+Name = property, used to get/set data in private field
 
+Access modifiers:
 
-
-Number types
-
-1) int
-
-- represents whole numbers
-- size 32 bits
-- 4 billion
-- used for counters, indexes
-
-int numberOfUsers = 243;
-
-2) float
-
-- approximate numbers with floating point
-- size 32 bits
-- fast & memory-efficient
-- limited precision (~6-9 decimal digits).
-
-Used when performance and memory
-are critical:
-
-- science
-- graphics programming
-- older games
-
-To declare a float - suffix a number with 'f'.
-
-float temperature = 37.6f;
-
-If you miss 'f' you would get an error:
-
-float temperature = 37.6; // double -> error
-
-
-3) double
-
-- more precise than float
-- still approximate
-- size 64 bits
-- default for numbers in C#
-
-Used for most general-purpose calculations
-involving fractions.
-
-To declare a double - suffix a number with 'd' (optional)
-
-double distance = 1234.567;
-double speedOfLight = 2.9e8;
-double preciseValue = 1.234d;
-
-4) decimal
-
-- high-precision
-- size 128 bits
-- doesn't have rounding errors
-- significantly slower
-
-Use for financial calculations.
-
-To declare a decimal - suffix number with 'm'.
-
-decimal price = 29.99m;
-
-Digit separators
-
-You can use '_' to make numbers more readable:
-
-decimal bankBalance = 1000000.50M;
-decimal bankBalance = 1_000_000.50M;
-
-
-
-
-Order of precedence
-
-1) Increment & decrement -> a++, b--
-2) Positive and negative -> -a
-3) Multiplication, division, modulus -> a * b, a / b, a % b
-4) Addition & subtraction -> a + b, a - b
-
-To override order of precedence - use ()
-
-a + b * c
-(a + b) * c
-
-Increment/decrement can be used as
-
-- prefix -> ++a
-- postfix -> a++
-
-Prefix - variable is incremented and then
-result is assigned.
-
-int a = 0;
-int b = ++a;
-
-Result:
-a = 1, b = 1
-
-Postfix - the result is assigned and then
-variable is incremented.
-
-int a = 0;
-int b = a++;
-
-Result:
-a = 1, b = 0
-
-
-
-Type conversions (casting)
-
-- Implicit (done automatically by C#)
-- Explicit (you code it)
-
-Implicit = from less precise type
-to a more precise.
-
-byte -> int
-
-byte (0 to 255) <- less precise than int
-int (-2 bn to +2 bn) <- more precise than byte
-
-float -> double -> decimal
+- public (you can access it outside of class)
+- private (you can access it only inside of class)
 
 Example
 
-double grade = 93f;
+class Student
+{
+    public string Name;
+    private string YourName;
+}
+
+Student man = new Student();
+
+man.Name = "Andrei"; // ok
+man.YourName = "Andrei"; // error
 
 
-Implicit conversion from more precise to
-less precise will not work:
+Setters/Getters
 
-int grade = 93.75; // error
+Getter method would define logic how
+to get a value of a private field.
 
-Use explicit cast:
+Setter method would define logic how
+to set a value of a private field.
 
-int grade = (int) 93.75; // 93
+Example
 
-decimal result = (decimal) 10 / 3; // 3.33(3)
+class Student
+{
+    public string Name { get; set; };
+}
 
-If you cast the result of division,
-you may get unexpected results:
+These getters/setters do nothing useful so far.
 
-decimal result = (decimal) (10 / 3); // 3.00
+class Student
+{
+    private string _name;
+    public string Name
+    {
+        get { return _name; }
+        set
+        {
+            if (!string.IsNullOrEmpty(value)) // 'value' is a must-use keyword here
+            {
+                _name = value;
+            } else
+            {
+                throw new ArgumentException("Name cannot be empty");
+            }
+        }
+    }
+}
 
+Student man = new Student();
+
+man._name = "Andrei"; // error
+man.Name = ""; // exception thrown
+man.Name = "Andrei"; // ok
+
+We use setters to safeguard fields
+of our objects.
+
+
+Constructor
+
+Special method which accepts parameters
+and sets the values to our fields at the
+moment when object is constructed/instantiated.
+
+class Student
+{
+    private string _name;
+    public string Name;
+
+    // constructor
+    public Student(string name)
+    {
+        Name = name;
+    }
+}
+
+Student student1 = new Student("Andrei");
+
+
+
+
+Methods
+
+We can add methods into class to perform some tasks.
+
+Methods also have access modifiers
+similar to the above:
+
+- public
+- private
+
+Example
+
+public class Student
+{
+    public void IntroduceYourself()
+    {
+        Console.WriteLine("Hello, I'm a student!");
+    }
+    private void HideYourself()
+    {
+        Console.WriteLine("Hello, I'm a student!");
+    }
+}
+
+Student st = new Student();
+st.IntroduceYourself(); // "Hello, I'm a student!"
+st.HideYourself(); // error
+
+
+
+Signature
+
+Method's signature is a combination of:
+
+- method's name
+- method's parameters
+
+Signature must be unique.
+
+Example:
+
+public int GetAge() { return 18; }
+public int GetAge(int start) { return start > 18 ? start : 0; }
+public int GetAge(int start, int finish) { return start < 18 < finish ? start : 0; }
+
+Here we have different signatures:
+
+1) "GetAge()" // no params
+2) "GetAge(int)" // one parameter of type 'int'
+3) "GetAge(int, int)" // two parameters of type 'int'
+
+
+
+
+Static methods
+
+Static methods can be accessed without creating an
+instance of the class (object).
+They don't depend on the state of object
+("standalone utility").
+
+Example
+
+public class Student
+{
+    public static string PrintName()
+    {
+        return "Hello world";
+    }
+}
+
+Student.PrintName(); // "Hello world"
+
+
+class Student
+{
+    public string Name;
+    public string GetName()
+    {
+        return Name;
+    }
+    public static string PrintName()
+    {
+        return "Hello world";
+    }
+}
+
+Student st1 = new Student();
+st1.Name = "Andrei";
+st1.GetName(); // "Andrei"
+st1.PrintNAme(); // "Hello world"
+
+Student st2 = new Student();
+st2.Name = "Canada";
+st2.GetName(); // "Canada"
+st2.PrintNAme(); // "Hello world"

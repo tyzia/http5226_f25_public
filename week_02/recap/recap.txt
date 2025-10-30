@@ -1,0 +1,254 @@
+Recap from Week 2
+
+
+
+0 & 1
+
+Computers operate with binary data: 0s and 1s.
+They don't understand anything else.
+
+We don't write code in 0 & 1, we write:
+
+Source Code
+(JS, C#, any other language)
+
+Between the Source code and final binary result there is
+
+Machine Code
+
+Machine code is a set of instructions for CPU in HEX.
+
+Example
+
+JS
+const sum = 5 + 3;
+
+Machine Code
+01 C3
+
+binary
+0000001 11000011
+
+
+Compiled vs Interpreted Language
+
+- Compiled Languages: C, C++, C#
+Compiled into binary executable (*.exe)
+Is very fast to execute.
+
+- Interpreted Languages: JS, Python
+Interpreter translates each line into
+machine code on the fly, and immediately
+executes it.
+Is slower.
+
+Advantages of C#
+
+1. C# is Compiled
+2. C# is Strongly-Typed
+3. The .NET Ecosystem
+
+Installation
+
+For this course you would need:
+
+1. VS Code editor
+2. C# Dev Kit plugin for VC Code
+2. .NET SDK
+
+To verify .NET SDK is installed:
+
+> dotnet --version
+8.0.413
+
+
+Variables
+
+We use basic data types for the course:
+
+int = for whole numbers (general purpose)
+decimal = for decimal numbers (money)
+string = for text
+bool = true/false
+
+To declare and use variable:
+
+- Define its data type
+- Define its name
+- Assign value to it
+
+Example
+
+int counter = 0;
+string city = "Toronto";
+
+Important!
+You should always assign a value to your
+variable before you use it, otherwise
+you would get an error.
+
+int counter;
+Console.WriteLine(counter); // error
+
+Mathematical operations
+
+int a = 10;
+int b = 3;
+
+int sum = a + b;
+int difference = a - b;
+int product = a * b;
+int quotient = a / b;
+int remainder = a % b;
+
+Modulus (%) returns reminder of
+the division:
+
+int remainder = 10 % 3; // 1
+
+Division
+
+int / int always returns int!
+
+int result = 10 / 3; // 3, not 3.333(3)
+
+Use 'decimal' data type.
+
+decimal result = (decimal) 10 / 3; // 3.333(3)
+
+
+Important!
+Value of a variable must match
+data type of variable. Otherwise error.
+
+int age = "18"; // error
+
+
+Assignment
+
+=
+
+If we use same variable on both
+side of assignment:
+
+int age = 0;
+age = age + 1;
+
+other way to add:
+
+age += 1;
+
+Similar for other math operations:
+
+age -= 1; // age = age - 1;
+age *= 1; // age = age * 1;
+age /= 1; // age = age / 1;
+
+Formatting numbers
+
+Syntax {value:format}
+
+double average = 2.3412567;
+$"{average:F2}"; // 2.34
+
+int average = 2;
+$"{average:F2}"; // 2.00
+
+F = number with a decimal point.
+2 = how many digits should appear.
+
+Converting data types
+
+Any data structure always has
+two methods available:
+
+- ToString() converts any data to string
+- Parse() converts a string into other data type.
+
+Example
+
+int myAge = 18;
+myAge.ToString(); // "18"
+
+string myNumber = "87";
+int.Parse(myNumber); // 87
+double.Parse(myNumber); // 87.0
+
+
+Working with strings
+
+string myCollege = "Humber " + "college"; // "Humber college"
+
+string college = "Humber";
+string myCollege = $"{college} college"; // "Humber college"
+
+
+Nullable type
+
+By default int, decimal or bool
+can't store null.
+
+int demo = null; // error
+
+To allow null, add ?
+
+int? quantity;
+quantity = null;
+quantity = 1;
+
+bool? isValid = null;
+
+Strings can have null, ? not needed
+but allowed:
+
+string? myCity = null;
+string myCity = null;
+
+
+string.IsNullOrEmpty()
+checks if provided string is not empty
+
+string.IsNullOrEmpty("Andrei") // false
+string.IsNullOrEmpty(null) // true
+
+
+Loops
+
+for (int i = 0; i < 2; i++)
+{
+    if (condition)
+    {
+        continue; // go to next iteration
+    }
+
+    if (otherCondition)
+    {
+        break; // finish the loop
+    }
+}
+
+Console useful commands:
+
+Console.WriteLine() - prints text in console and adds new line
+Console.Write() - prints text in console and stays at the same line
+Console.ReadLine() - reads input from console
+
+
+Complex apps consists of many projects
+
+Example of console app
+
+1) Create a solution file.
+This file "knows" about all the parts of our project.
+
+> dotnet new sln -n VariableLab
+
+2) Create console app.
+Generate Console App project
+
+> dotnet new console -o src/VariableLab
+
+3) Add this app into solution file.
+
+> dotnet sln add src/VariableLab/VariableLab.csproj
+

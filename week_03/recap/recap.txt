@@ -1,254 +1,162 @@
-Recap from Week 2
+Recap from Week 3
 
 
 
-0 & 1
+Scientific notation
 
-Computers operate with binary data: 0s and 1s.
-They don't understand anything else.
-
-We don't write code in 0 & 1, we write:
-
-Source Code
-(JS, C#, any other language)
-
-Between the Source code and final binary result there is
-
-Machine Code
-
-Machine code is a set of instructions for CPU in HEX.
+A short way to represent
+a very large or a very small number
 
 Example
 
-JS
-const sum = 5 + 3;
-
-Machine Code
-01 C3
-
-binary
-0000001 11000011
+8,000,000,000 -> 8e9
+0.000000000012 ->1.2e-11
 
 
-Compiled vs Interpreted Language
 
-- Compiled Languages: C, C++, C#
-Compiled into binary executable (*.exe)
-Is very fast to execute.
+Number types
 
-- Interpreted Languages: JS, Python
-Interpreter translates each line into
-machine code on the fly, and immediately
-executes it.
-Is slower.
+1) int
 
-Advantages of C#
+- represents whole numbers
+- size 32 bits
+- 4 billion
+- used for counters, indexes
 
-1. C# is Compiled
-2. C# is Strongly-Typed
-3. The .NET Ecosystem
+int numberOfUsers = 243;
 
-Installation
+2) float
 
-For this course you would need:
+- approximate numbers with floating point
+- size 32 bits
+- fast & memory-efficient
+- limited precision (~6-9 decimal digits).
 
-1. VS Code editor
-2. C# Dev Kit plugin for VC Code
-2. .NET SDK
+Used when performance and memory
+are critical:
 
-To verify .NET SDK is installed:
+- science
+- graphics programming
+- older games
 
-> dotnet --version
-8.0.413
+To declare a float - suffix a number with 'f'.
 
+float temperature = 37.6f;
 
-Variables
+If you miss 'f' you would get an error:
 
-We use basic data types for the course:
-
-int = for whole numbers (general purpose)
-decimal = for decimal numbers (money)
-string = for text
-bool = true/false
-
-To declare and use variable:
-
-- Define its data type
-- Define its name
-- Assign value to it
-
-Example
-
-int counter = 0;
-string city = "Toronto";
-
-Important!
-You should always assign a value to your
-variable before you use it, otherwise
-you would get an error.
-
-int counter;
-Console.WriteLine(counter); // error
-
-Mathematical operations
-
-int a = 10;
-int b = 3;
-
-int sum = a + b;
-int difference = a - b;
-int product = a * b;
-int quotient = a / b;
-int remainder = a % b;
-
-Modulus (%) returns reminder of
-the division:
-
-int remainder = 10 % 3; // 1
-
-Division
-
-int / int always returns int!
-
-int result = 10 / 3; // 3, not 3.333(3)
-
-Use 'decimal' data type.
-
-decimal result = (decimal) 10 / 3; // 3.333(3)
+float temperature = 37.6; // double -> error
 
 
-Important!
-Value of a variable must match
-data type of variable. Otherwise error.
+3) double
 
-int age = "18"; // error
+- more precise than float
+- still approximate
+- size 64 bits
+- default for numbers in C#
+
+Used for most general-purpose calculations
+involving fractions.
+
+To declare a double - suffix a number with 'd' (optional)
+
+double distance = 1234.567;
+double speedOfLight = 2.9e8;
+double preciseValue = 1.234d;
+
+4) decimal
+
+- high-precision
+- size 128 bits
+- doesn't have rounding errors
+- significantly slower
+
+Use for financial calculations.
+
+To declare a decimal - suffix number with 'm'.
+
+decimal price = 29.99m;
+
+Digit separators
+
+You can use '_' to make numbers more readable:
+
+decimal bankBalance = 1000000.50M;
+decimal bankBalance = 1_000_000.50M;
 
 
-Assignment
 
-=
 
-If we use same variable on both
-side of assignment:
+Order of precedence
 
-int age = 0;
-age = age + 1;
+1) Increment & decrement -> a++, b--
+2) Positive and negative -> -a
+3) Multiplication, division, modulus -> a * b, a / b, a % b
+4) Addition & subtraction -> a + b, a - b
 
-other way to add:
+To override order of precedence - use ()
 
-age += 1;
+a + b * c
+(a + b) * c
 
-Similar for other math operations:
+Increment/decrement can be used as
 
-age -= 1; // age = age - 1;
-age *= 1; // age = age * 1;
-age /= 1; // age = age / 1;
+- prefix -> ++a
+- postfix -> a++
 
-Formatting numbers
+Prefix - variable is incremented and then
+result is assigned.
 
-Syntax {value:format}
+int a = 0;
+int b = ++a;
 
-double average = 2.3412567;
-$"{average:F2}"; // 2.34
+Result:
+a = 1, b = 1
 
-int average = 2;
-$"{average:F2}"; // 2.00
+Postfix - the result is assigned and then
+variable is incremented.
 
-F = number with a decimal point.
-2 = how many digits should appear.
+int a = 0;
+int b = a++;
 
-Converting data types
+Result:
+a = 1, b = 0
 
-Any data structure always has
-two methods available:
 
-- ToString() converts any data to string
-- Parse() converts a string into other data type.
+
+Type conversions (casting)
+
+- Implicit (done automatically by C#)
+- Explicit (you code it)
+
+Implicit = from less precise type
+to a more precise.
+
+byte -> int
+
+byte (0 to 255) <- less precise than int
+int (-2 bn to +2 bn) <- more precise than byte
+
+float -> double -> decimal
 
 Example
 
-int myAge = 18;
-myAge.ToString(); // "18"
-
-string myNumber = "87";
-int.Parse(myNumber); // 87
-double.Parse(myNumber); // 87.0
+double grade = 93f;
 
 
-Working with strings
+Implicit conversion from more precise to
+less precise will not work:
 
-string myCollege = "Humber " + "college"; // "Humber college"
+int grade = 93.75; // error
 
-string college = "Humber";
-string myCollege = $"{college} college"; // "Humber college"
+Use explicit cast:
 
+int grade = (int) 93.75; // 93
 
-Nullable type
+decimal result = (decimal) 10 / 3; // 3.33(3)
 
-By default int, decimal or bool
-can't store null.
+If you cast the result of division,
+you may get unexpected results:
 
-int demo = null; // error
-
-To allow null, add ?
-
-int? quantity;
-quantity = null;
-quantity = 1;
-
-bool? isValid = null;
-
-Strings can have null, ? not needed
-but allowed:
-
-string? myCity = null;
-string myCity = null;
-
-
-string.IsNullOrEmpty()
-checks if provided string is not empty
-
-string.IsNullOrEmpty("Andrei") // false
-string.IsNullOrEmpty(null) // true
-
-
-Loops
-
-for (int i = 0; i < 2; i++)
-{
-    if (condition)
-    {
-        continue; // go to next iteration
-    }
-
-    if (otherCondition)
-    {
-        break; // finish the loop
-    }
-}
-
-Console useful commands:
-
-Console.WriteLine() - prints text in console and adds new line
-Console.Write() - prints text in console and stays at the same line
-Console.ReadLine() - reads input from console
-
-
-Complex apps consists of many projects
-
-Example of console app
-
-1) Create a solution file.
-This file "knows" about all the parts of our project.
-
-> dotnet new sln -n VariableLab
-
-2) Create console app.
-Generate Console App project
-
-> dotnet new console -o src/VariableLab
-
-3) Add this app into solution file.
-
-> dotnet sln add src/VariableLab/VariableLab.csproj
+decimal result = (decimal) (10 / 3); // 3.00
 
