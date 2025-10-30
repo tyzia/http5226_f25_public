@@ -1,0 +1,363 @@
+Recap from Week 7
+(delivered on Week 8)
+
+
+
+Parameterised Queries
+
+Never trust user input!
+Never add user input directly into SQL queries!
+
+Do NOT do:
+$"INSERT INTO Cus (Name) VALUES ('{userInput}')";
+
+Always use parameterised query.
+
+This allows to:
+
+1) Prevent SQL injection attacks.
+2) Improve performance (caching).
+3) Type Safety.
+4) Proper handling of special characters and NULL values.
+
+
+You can use parameters for:
+
+- WHERE clause
+- INSERT statement
+- UPDATE statement
+- DELETE statement
+
+
+To use parameters, you:
+
+1) Code a SQL statement with placeholders for the parameters.
+
+Example:
+"INSERT INTO Customers (Name) VALUES (@Name)";
+
+Here:
+@Name is a placeholder for parameter "Name".
+
+2) Create a parameter and add to Parameters collection.
+
+You have 4 options here:
+
+- AddWithValue(name, value)
+- Add(parameter) <<<<<<<<<<<< - recommended
+- Add(name, type)
+- Add(name, type, size)
+
+Examples:
+
+1)
+cmd.Parameters.AddWithValue("@Name", "John");
+
+2)
+// Recommended
+SqliteParameter nameParam = new SqliteParameter("@Name", DbType.String);
+nameParam.Value = "John";
+cmd.Parameters.Add(nameParam);
+
+// OR
+cmd.Parameters.Add(new SqliteParameter("@Name", DbType.String) { Value = "John" });
+
+3)
+cmd.Parameters.Add("@Name", DbType.String).Value = "John";
+
+4)
+// Not supported in Sqlite
+cmd.Parameters.Add("@Name", SqlDbType.NVarChar, 100).Value = "John";
+
+
+
+NULL values
+
+Always handle potential NULL values
+before passing them to database parameters.
+
+Example
+
+cmd.Parameters.Add("@Phone", DbType.String).Value =
+    !string.IsNullOrEmpty(customer.Phone) ? customer.Phone : (object)DBNull.Value;
+
+This is also an example of a "happy path" concept:
+
+in IF condition we handle "happy path".
+in ELSE condition we handle edge case.
+
+
+(object)DBNull.Value
+
+This syntax is used to save NULL into Database.
+
+
+
+Common Data Types
+
+For TEXT (names, emails, descriptions)
+DbType.String
+
+For INTEGER (ID, age, quantity)
+DbType.Int32
+
+For REAL (prices, money, precise calculations)
+DbType.Decimal
+
+For INTEGER (0/1)
+DbType.Boolean
+
+For TEXT used for dates and timestamps
+DbType.DateTime
+
+
+Validate Input
+
+Before adding to parameters validate
+input with custom methods.
+
+Example
+
+if (string.IsNullOrWhiteSpace(name))
+    throw new ArgumentException("Name cannot be empty");
+
+if (!IsValidEmail(email))
+    throw new ArgumentException("Invalid email format");
+
+
+Examples
+
+INSERT:
+
+string sql = "INSERT INTO Customers (Email) VALUES (@Email)";
+using (SqliteCommand command = new SqliteCommand(sql, connection))
+{
+    command.Parameters.Add(new SqliteParameter("@Email", DbType.String) {
+        Value = email ?? (object)DBNull.Value
+    });
+    int rowsInserted = command.ExecuteNonQuery();
+}
+
+SELECT:
+
+string sql = "SELECT Name FROM Customers WHERE Email = @Email";
+SqliteCommand command = new SqliteCommand(sql, connection);
+command.Parameters.Add(new SqliteParameter("@Email", DbType.String) { Value = "john@email.com" });
+using (SqliteDataReader reader = command.ExecuteReader())
+{
+    while (reader.Read())
+    {
+        Console.WriteLine($"Name: {reader["Name"]}");
+    }
+}
+
+
+UPDATE:
+
+string sql = "UPDATE Customers SET Email = @Email WHERE CustomerId = @CustomerId";
+SqliteCommand command = new SqliteCommand(sql, connection);
+command.Parameters.Add(new SqliteParameter("@Email", DbType.String) { Value = "newemail@example.com" });
+command.Parameters.Add(new SqliteParameter("@CustomerId", DbType.Int32) { Value = 123 });
+int rowsUpdated = command.ExecuteNonQuery();
+
+
+
+DELETE:
+
+string sql = "DELETE FROM Customers WHERE CustomerId = @CustomerId";
+SqliteCommand command = new SqliteCommand(sql, connection);
+command.Parameters.Add(new SqliteParameter("@CustomerId", DbType.Int32) { Value = 456 });
+int rowsDeleted = command.ExecuteNonQuery();
+
+
+
+
+Maintaining the connection
+
+I need a connection to DB to query data.
+Always close the connection!
+
+
+Example
+
+SqliteConnection con = new SqliteConnection(conStr);
+con.Open(); // <<<<< crash #1
+cmd.ExecuteNonQuery(); // <<<<< crash #2
+con.Close(); // <<<< memory leak after crash #2
+
+
+Potential problems:
+
+1) If connection fails to Open, the app will crash (#1).
+2) If query fails, the app will crash (#2) and connection
+will not be closed, it will be kept open leading to memory leak.
+
+Possible reasons for a failed connection Open():
+
+- Database file doesn't exist
+- Invalid connection string
+- File permissions issues
+- Database is corrupted
+- Network issues
+
+
+A better way - use "try-catch".
+
+Example:
+
+SqliteConnection con = new SqliteConnection(conStr);
+try
+{
+    con.Open();
+    cmd.ExecuteNonQuery(); // <<<<<< crash again!
+    con.Close(); // <<<< memory leak after crash
+}
+catch (Exception ex) { ... }
+
+Potential problems:
+
+1) If query fails, the app doesn't crash but connection
+will not be closed, it will lead to memory leak.
+
+
+Even better way - add "finally".
+
+Example
+
+SqliteConnection connection = null;
+try
+{
+    con = new SqliteConnection(connectionString);
+    con.Open();
+    cmd.ExecuteNonQuery();
+    con.Close();
+}
+catch (Exception ex) { ... }
+finally
+{
+    cmd?.Dispose(); // ← Clean up command
+    conn?.Close(); // ← Ensures connection closed even if error
+}
+
+
+cmd.Dispose() releases memory used by command
+otherwise it will cause a memory leak.
+
+
+Instead of all above,
+a modern approach - "using".
+
+"using" allows to close the connection
+and dispose resources automatically.
+
+
+Example
+
+using (SqliteCommand cmd = new SqliteCommand(sql, con))
+{
+    cmd.ExecuteNonQuery();
+    ...
+}
+
+
+
+
+SqliteDataReader
+
+A forward-only, read-only stream of data
+from the database.
+
+The Reader Lifecycle Pattern
+
+1) Check if we have any data (ex. reader.HasRows)
+2) Read row by row (ex. while (reader.Read()) { ... })
+3) Extract data from current row:
+
+ 3.1) By Column Name (recommended)
+ 3.2) By Column Index
+ 3.3) Using Indexer
+
+4) Reader auto closes and disposes (no action needed)
+
+When extracting data we use a 2-step approach:
+
+1) Find position of the column in result set.
+2) Get its value from result set.
+
+
+
+Example
+
+using (SqliteDataReader reader = command.ExecuteReader())
+{
+    if (!reader.HasRows) // Step 1
+    {
+        Console.WriteLine("No data found.");
+        return;
+    }
+
+    while (reader.Read()) // Step 2
+    {
+        // Step 3
+        string email = !reader.IsDBNull(reader.GetOrdinal("Email"))
+            ? reader.GetString(reader.GetOrdinal("Email"))
+            : "N/A";
+    }
+} // Step 4
+
+
+
+Here:
+
+- IsDBNull() checks if a database column contains
+a NULL value.
+
+Without this check:
+
+reader.GetString(reader.GetOrdinal("Email"));
+Result: ❌ InvalidCastException: Unable to cast object of type 'DBNull' to type 'String'
+
+
+- reader.GetString() gets string type.
+To get other types:
+
+int id = reader.GetInt32(reader.GetOrdinal("CustomerID"));
+decimal balance = reader.GetDecimal(reader.GetOrdinal("Balance"));
+bool isActive = reader.GetBoolean(reader.GetOrdinal("IsActive"));
+DateTime createdDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate"));
+
+
+
+.ExecuteScalar()
+If you need single value from Database.
+
+When to use:
+
+- COUNT(*) - number of records
+- MAX/MIN/AVG - aggregate functions
+- SELECT SingleColumn - when you need one value
+- EXISTS queries - check if record exists
+
+
+Example
+
+string countSql = "SELECT COUNT(*) FROM Customers";
+using (SqliteCommand cmd = new SqliteCommand(countSql, con))
+{
+    long totalCustomers = (long)cmd.ExecuteScalar();
+}
+
+Example
+
+string existsSql = "SELECT 1 FROM Customers WHERE Email = @Email";
+using (SqliteCommand cmd = new SqliteCommand(existsSql, con))
+{
+    cmd.Parameters.Add(new SqliteParameter("@Email", DbType.String) { Value = "test@email.com" });
+    object result = cmd.ExecuteScalar();
+    bool doesEmailExist = result != null;
+}
+
+
+
+
+Thank you.
