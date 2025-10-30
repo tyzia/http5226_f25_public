@@ -1,0 +1,1087 @@
+
+
+
+
+
+
+
+
+Plan
+
+MVC
+Convention over Configuration
+Creating MVC project
+Controllers
+namespace
+Class inheritance
+Creating new controller
+Controller actions
+2 ways to pass data to controller
+Preventing XSS attacks
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MVC
+
+
+
+
+
+
+
+
+It's crucial to understand that MVC is a design pattern,
+not a Microsoft invention.
+
+Invented by XEROX in 1979
+
+It's a proven way to structure interactive applications.
+
+As a pattern you can find MVC everywhere:
+
+- Spring (Java)
+- Django (Python)
+- JavaScript frameworks (Angular)
+
+Learning MVC in this course means
+you're learning a universal concept in
+software architecture.
+
+
+
+
+
+The idea of MVC
+
+MVC separates the UI logic into 3 pieces:
+
+- The Model
+- The View
+- The Controller
+
+This separation makes your code easier to:
+
+- Manage
+- Test
+- Scale
+
+
+
+
+
+
+
+
+The Model
+
+
+
+
+
+It's the core of your application.
+
+It represents your data and business logic.
+The Model is responsible for:
+
+- Fetching data from a database
+- Processing data
+- Enforcing business rules
+
+Importantly, the Model does not know anything
+about the user interface.
+
+
+
+
+
+
+The View
+
+
+
+
+What the user sees (HTML, CSS, and JavaScript).
+Its single job is to present the data from
+the Model to the user.
+
+
+The View contains minimal logic,
+only enough to display the data
+it's given.
+
+
+It doesn't handle user interactions directly;
+it just renders the UI.
+
+
+
+
+
+
+
+
+
+The Controller
+
+
+
+The Controller is the traffic cop.
+It handles user input (a click on a link
+or a form submission).
+
+
+It processes that input, potentially talks
+to the Model to get or save data, and then
+selects the appropriate View to
+send back to the user.
+
+
+
+
+
+
+
+
+
+'Convention over Configuration'
+
+
+
+
+
+
+
+ASP.NET MVC heavily embraces this principle.
+This means that instead of writing extensive
+configuration files to wire things together,
+the framework assumes you will follow:
+
+certain naming and structural conventions
+
+This saves you a tremendous amount of time and code.
+
+
+
+
+
+
+Example folder structure
+of a MVC project in ASP.NET:
+
+
+MyApp/
+├── Controllers/
+│   ├── HomeController.cs
+│   └── ProductsController.cs
+├── Models/
+│   ├── Product.cs
+│   └── ViewModels/
+│       └── ProductListViewModel.cs
+├── Views/
+│   ├── Home/
+│   │   ├── Index.cshtml
+│   │   ├── About.cshtml
+│   │   └── Contact.cshtml
+│   ├── Products/
+│   │   ├── Index.cshtml
+│   │   ├── Details.cshtml
+│   │   └── Delete.cshtml
+│   ├── Shared/
+│   │   ├── _Layout.cshtml
+│   │   ├── _Navbar.cshtml
+│   │   └── Error.cshtml
+│   └── _ViewStart.cshtml
+├── wwwroot/
+│   ├── css/
+│   │   └── site.css
+│   ├── js/
+│   │   └── site.js
+│   ├── lib/
+│   │   ├── bootstrap/
+│   │   └── jquery/
+│   └── images/
+│       └── logo.png
+├── Data/
+│   └── ApplicationDbContext.cs
+├── Program.cs
+├── Startup.cs
+├── appsettings.json
+└── MyApp.csproj
+
+
+
+/Controllers
+
+This is where your Controller classes live.
+The convention is that their names must end with
+*Controller (e.g., HomeController, ProductController).
+
+
+
+
+
+
+/Views
+
+
+
+This is for your View files (.cshtml).
+Inside here, there's another crucial convention:
+
+/Views/ [ControllerName] / [ActionName].cshtml.
+
+
+Example:
+
+/Views/Home/
+Framework uses this folder corresponding to the HomeController.
+
+/Views/Home/Index.cshtml
+Framework automatically looks for this file for the
+Index action method in HomeController.
+
+Or in short:
+
+/Views/Home/ -> /Controllers/HomeController.cs
+/Views/Home/Index.cshtml -> HomeController.Index()
+
+
+
+
+/Views/Shared
+
+Shared views, used across multiple controllers
+(like a common layout) go into: /Views/Shared
+
+
+
+
+
+
+
+/Models
+
+This is where you place your Model classes.
+
+
+
+
+
+/wwwroot
+
+This is for static files
+
+- CSS
+- JavaScript
+- images
+
+This folder is directly accessible by the web browser.
+
+
+
+
+
+
+
+
+
+How to create MVC project
+
+
+
+
+Create a directory:
+
+> mkdir MyFirstMvcApp
+> cd MyFirstMvcApp
+
+Create MVC project with CLI:
+
+> dotnet new mvc -n LectureDemo
+
+Run MVC project:
+
+> cd LectureDemo
+> dotnet run
+
+This command will show how to view your app,
+for example: https://localhost:5235
+
+To stop the app:
+
+Mac: control + C
+Win: CTRL + C
+
+
+(demo & show files)
+
+
+
+Why loading https://localhost:5235 showed Home page?
+
+
+
+
+
+
+
+
+
+
+Answer:
+The default request ("/") is routed to the
+Index action of the HomeController.
+
+It's a simple method that just returns View().
+
+Because we followed the convention,
+the framework automatically finds and
+renders the /Views/Home/Index.cshtml file.
+
+
+
+
+
+
+
+
+
+
+
+Controllers
+
+
+
+
+Why we have controllers as they are now?
+
+Small history lesson to get deeper understanding
+of how modern MVC app with Controllers works.
+
+Static HTML
+
+Way back servers served up HTML stored in
+static files on disk.
+
+Example
+
+URL: /products/index.html
+Server finds /products/index.html on disk and serves it.
+
+In this case there should be *.html file for each
+URL for the website.
+
+
+Dynamic Web Pages
+
+With dynamic web pages coming, web servers served
+HTML pages generated on the fly from dynamic scripts
+located on disk.
+
+
+Example
+
+URL: /products/details.php
+Server executes PHP code from details.php script
+which generates HTML and next server serves this HTML.
+
+
+
+MVC way of serving HTML
+
+
+With MVC it is different - the URL tells the engine
+which controller class to instantiate and which
+method action to call and supplies required arguments
+to that method.
+
+The controller's method decides then which view to
+use and that view renders the HTML.
+
+
+Example
+
+URL: /Products
+Routing engine → ProductsController.Index() method
+
+
+Example (with arguments)
+
+URL: /Products/Details/5
+Routing engine → ProductsController.Details(5) method
+
+
+
+In MVC rather than having a direct relationship
+between URL and a file on server, there is a relationship
+between URL and method in a controller.
+
+In other words, MVC serves the results of method calls,
+not files on disk!
+
+
+Controllers are responsible for responding to user input,
+making changes to the model in response.
+
+
+
+
+Practice:
+
+
+Which controller, which method and which parameters
+would be called by engine for the following URLs:
+
+
+
+1) URL: /Home
+
+Answer
+
+Controller:
+Action Method:
+Parameters:
+
+
+
+
+2) URL: /Products/Details/8
+
+Answer
+
+Controller:
+Action Method:
+Parameters:
+
+
+
+
+
+
+
+
+Learning MVC presents a chicken and egg problem:
+there are three parts (M, V, C) to understand
+and digging into one, without others is difficult.
+
+We will focus on controllers, but mention models &
+views a bit.
+
+
+
+
+
+
+
+Now let's get back to our demo code
+and see what we have as generated controllers.
+
+(demo/LecDemo/Controllers)
+
+
+
+
+C#
+
+using System.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
+using LecDemo.Models;
+
+namespace LecDemo.Controllers;
+
+public class HomeController : Controller
+{
+    private readonly ILogger<HomeController> _logger;
+
+    public HomeController(ILogger<HomeController> logger)
+    {
+        _logger = logger;
+    }
+
+    public IActionResult Index()
+    {
+        return View();
+    }
+
+    public IActionResult Privacy()
+    {
+        return View();
+    }
+
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult Error()
+    {
+        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+}
+
+
+
+
+
+
+
+
+namespace
+
+
+
+Namespace is used to better organize your code.
+
+
+Without a namespace you have:
+
+
+
+
+/Controllers/DemoController.cs
+
+// no namespace
+public class DemoController { ... }
+
+
+
+
+
+
+If you need to refer to this class in other file,
+this won't work:
+
+DemoController cl = new DemoController();
+
+You would need a fully qualified name:
+
+Project.Controllers.DemoController cl = new Project.Controllers.DemoController();
+
+
+
+
+
+
+
+
+To avoid this long names, you can add:
+
+namespace + using
+
+
+
+
+/Controllers/DemoController.cs
+
+namespace Project.Controllers;
+public class DemoController { ... }
+
+And now use it:
+
+using Project.Controllers;
+DemoController cl = new DemoController();
+
+
+
+
+
+
+To sum up:
+
+// problem (too verbose)
+Project.Controllers.DemoController cl = new Project.Controllers.DemoController();
+
+// fix
+using Project.Controllers;
+DemoController cl = new DemoController();
+
+
+
+
+
+
+
+
+Inheritance
+
+
+In the generated code we see something like:
+
+public class HomeController : Controller
+
+This is Inheritance of a base Controller class.
+This class is provided by ASP.NET Core, we don't code it.
+
+In other words our HomeController class has all
+fields and properties belonging to Controller class
+and adds or extends it.
+
+Our controller can call methods of base controller.
+
+Base controller class allows for example:
+
+Redirect(url);  // Redirects to another URL
+Content("hello"); // Returns plain text
+
+
+Even though we didn't code these methods in HomeController,
+we still have access to them (from base Controller class).
+
+
+Example
+
+public class HomeController : Controller
+{
+    public IActionResult MyAction()
+    {
+        return Content("Hello");  // ← This method comes from base class
+    }
+}
+
+
+(demo in HomeController.cs, localhost:5235/Home/MyAction/)
+
+
+
+
+
+
+
+
+
+Logger
+
+
+A logger functionality is created for you
+by default:
+
+private readonly ILogger<HomeController> _logger;
+
+Here
+
+ILogger is a generic interface. It means that it accepts type:
+
+ILogger<HomeController>
+
+We specify the type for this interface to easier filter logs later.
+All logs belonging to HomeController will be marked so.
+
+
+
+Why logging is important?
+
+- Debugging production issues
+- Monitoring application health
+- Tracking errors and user activities
+
+
+Example:
+
+public IActionResult Index()
+{
+    _logger.LogInformation("Home page visited at {Time}", DateTime.Now);
+    return View();
+}
+
+Result (navigate to localhost:5235/Home/)
+
+info: LecDemo.Controllers.HomeController[0]
+      Home page visited at 10/27/2025 15:57:53
+
+
+
+
+
+
+Caching
+
+
+
+
+You probably noticed:
+
+[ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+public IActionResult Error()
+
+It disables caching for the error page.
+
+
+Why disable caching for errors?
+
+You want fresh error details each time without
+browser caching it.
+
+
+
+
+
+
+
+
+
+
+Create New Controller (CLI)
+
+
+Go to your project root (where your .csproj file is located)
+
+> cd demo/1/LecDemo/
+> dotnet new controller -n ProductsController
+
+
+If your command doesn't work (as for me)
+
+Example error:
+
+No templates or subcommands found matching: 'controller'.
+Did you mean one of the following templates?
+   dotnet new apicontroller
+   dotnet new mvccontroller
+
+
+To see available templates:
+
+> dotnet new list controller
+
+These templates matched your input: 'controller'
+
+Template Name                                 Short Name     Language  Tags
+--------------------------------------------  -------------  --------  -----------
+API Controller                                apicontroller  [C#]      Web/ASP.NET
+ASP.NET Core Web App (Model-View-Controller)  mvc            [C#],F#   Web/MVC
+MVC Controller                                mvccontroller  [C#]      Web/ASP.NET
+
+
+Now run correct command:
+
+> dotnet new mvccontroller -n ProductsController
+
+
+But this would create a controller in our project root.
+We want it to be inside of Controllers/ folder to use
+"convention over configuration" principle.
+
+To fix:
+
+> rm ProductsController.cs
+
+> dotnet new mvccontroller -n ProductsController -o Controllers
+
+This creates a controller correctly, but we need to fix two things:
+
+1. Namespace
+namespace MyApp.Namespace -> namespace LecDemo.Controllers
+
+2. Return type
+public ActionResult Index() -> public IActionResult Index()
+
+3. View
+As we don't have view yet, let's not break our app
+and replace:
+
+(demo try first > dotnet run)
+
+return View(); -> return Content("Products page is working!");
+
+
+
+
+
+
+
+
+Controller Actions
+
+
+
+We can create actions which we need
+and call them by navigating to URLs.
+
+Their job is to respond to URL requests,
+perform actions and return a response back.
+
+
+
+Example
+
+public string Index()
+{
+    return "Hello from Index()";
+}
+
+This action will be called for:
+
+GET: /Products
+GET: /Products/Index
+
+
+
+Example
+
+public string Browse()
+{
+    return "Hello from Browse()";
+}
+
+This action will be called for:
+/Products/Browse
+
+demo:
+
+- add them to ProductsController.cs
+- dotnet run
+
+Navigate to:
+
+https://localhost:7000/Products → "Hello from Index()"
+https://localhost:7000/Products/Browse → "Hello from Browse()"
+https://localhost:7000/Products/Details → "Hello from Details()"
+
+
+
+
+
+
+
+Parameters in Controller Actions
+
+
+
+
+
+We can pass parameters from URL to
+our action methods.
+
+We can pass parameters in two ways:
+
+1. Query string (url?param=value&param2=value2)
+2. URL segments (Products/Details/8)
+
+
+
+
+
+
+Query string params
+
+
+
+Example
+
+public string Browse(string song)
+{
+    string songDisplay = System.Net.WebUtility.HtmlEncode(song);
+    return $"Browsing products in song: {songDisplay}";
+}
+
+Important: Use HtmlEncode to prevent XSS attacks!
+
+Test URLs:
+
+/Products/Browse?song=Rock → "Browsing products in song: Rock"
+
+demo: http://localhost:5235/Products/Browse?song=Rock
+
+XSS attack failed:
+/Products/Browse?song=<script>alert('xss')</script>
+
+
+
+
+XSS attack would succeed if we have no
+sanitization of user input:
+
+Example
+
+public string Browse(string song)
+{
+    return $"Browsing products in song: {song}";
+}
+
+demo: http://localhost:5235/Products/Browse?song=<script>alert('xss')</script>
+
+
+
+
+
+
+
+Route Parameters (URL Segments)
+
+
+
+Example
+
+public string Details(int id)
+{
+    return $"Showing details for product ID: {id}";
+}
+
+URLs:
+
+/Products/Details/5 → "Showing details for product ID: 5"
+/Products/Details/42 → "Showing details for product ID: 42"
+
+demo:
+http://localhost:5235/Products/Details/7
+
+
+
+
+XSS injection through URL segment is not
+possible:
+
+demo:
+http://localhost:5235/Products/Details/<script>alert('xss')</script>
+
+404 error, there is no such method "<script>alert('xss')</script>".
+
+
+
+
+
+
+
+
+You can have two action parameters.
+
+Example
+
+MoviesController.cs
+
+public IActionResult Browse(string movie, int year)
+{
+    return Content($"Searching for '{movie}' from {year} year");
+}
+
+URL: /Movies/Browse?movie=x-files&year=1995
+
+
+
+
+
+
+
+
+
+
+
+
+To sum up
+
+Controller actions is like web browser is
+directly calling them on our controller class.
+
+The class, parameters are all specified as
+path segments or query strings in the URL and
+result string is returned to the browser.
+
+Controllers can do a lot, but regular way to
+use them - call them via URL, they execute our
+custom code and they return a view.
+
+
+
+
+
+
+
+
+
+
+
+
+The Chicken & Egg Problem Solved
+
+When you understand controllers,
+the MVC triangle makes sense:
+
+
+Example:
+
+public class ProductsController : Controller
+{
+    // Controller decides which VIEW to use
+    public IActionResult Index()
+    {
+        // Model provides data
+        var products = _products;
+
+        // View displays data
+        return View(products); // Pass model to view
+    }
+
+    // Pure controller action (no view)
+    public string Test()
+    {
+        return "This is just a controller response";
+    }
+}
+
+
+
+
+
+Key Observations
+
+1. Every request goes through a controller - no direct file access
+2. URLs map to controller methods - not to physical files
+3. Parameters come from URL - either query string or route segments
+4. Controllers can return anything - strings, JSON, views, files
+5. Routing is automatic - based on naming conventions
+
+
+
+This foundation is crucial!
+Now you understand that at its core, MVC is about mapping
+URLs to method calls on controller classes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Summary:
+
+Controllers are responsible for responding to user input, making changes to the model in response.
+They are concerned with the flow of the app, working with data coming in and providing data going out to the relevant view.
+Way back servers served up HTML stored in static files on disk. With dynamic web pages coming, web servers served HTML pages generated on the fly from dynamic scripts located on disk.
+With MVC it is different - the URL tells the engine which controller class to instantiate and which method action to call and supplies required arguments to that method. The controller's method decides then which view to use and that view renders the HTML.
+Rather than having a direct relationship between URL and a file on server, there is a relationship between URL and method in a controller.
+The controller sits in front of everything (except of routing).
+MVC serves up the results of method calls, not dynamically generated pages.
+
+
+
+
+
+
+
+
+
+
+
+Thank you!
