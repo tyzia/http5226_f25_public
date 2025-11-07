@@ -1,0 +1,14 @@
+﻿@using LecDemo.Models.ViewModels
+@model AlbumListViewModel
+
+<h1>@Model.PageTitle</h1>
+<div class="user-info">
+    <h2>Welcome, @Model.CurrentUser!</h2>
+</div>
+
+<ul>
+    @foreach (Album album in Model.Albums)
+    {
+        <li>@album.Title</li>
+    }
+</ul>

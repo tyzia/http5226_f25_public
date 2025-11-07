@@ -1,0 +1,336 @@
+Recap from Week 9
+(delivered on Week 10)
+
+
+User sees UI, not models or controllers.
+
+Isn't useful either:
+
+Bad UI + good models/controllers.
+Good UI + bad models/controllers.
+
+You need a View to display dynamic
+content to the user.
+
+Views are located in /Views/ folder
+and have *.cshtml extension.
+
+Code of the view in most part is a
+simple HTML.
+
+Views are not directly accessible.
+
+View is rendered by a controller.
+
+Controller needs to pass data
+to a View.
+
+
+Static View - always the same.
+
+Example
+
+// controller
+public IActionResult Index()
+{
+    return View();
+}
+
+
+How View works:
+
+0) User loads homepage.
+1) Browser requests: "/"
+2) /Controllers/HomeController.cs
+3) Index()
+4) /Views/Home/Index.cshtml
+5) Browser renders a page.
+
+
+Dynamic View to display variable view.
+View here is a template.
+
+To pass data to the View:
+
+1. ViewBag
+2. View Model
+
+
+ViewBag
+
+ViewBag is a dynamic object.
+You can assign any property to it.
+
+
+Example
+
+// Home controller
+public IActionResult About()
+{
+    ViewBag.Message = "About my awesome app";
+    ViewBag.FoundedYear = 2025;
+    return View();
+}
+
+
+/Views/Home/About.cshtml
+
+<h3>@ViewBag.Message</h3>
+<p>Founded in: @ViewBag.FoundedYear</p>
+
+Here:
+
+@ - part of Razor syntax to add code.
+
+
+
+Problem with ViewBag
+
+ViewBag defaults to object.
+Needs casting for complex data.
+
+
+// controller
+public ActionResult List()
+{
+    List<Album> albums = new List<Album>();
+    for (int i = 0; i < 10; i++) {
+        albums.Add(new Album { Title = "Album " + i });
+    }
+    ViewBag.Albums = albums;
+    return View();
+}
+
+
+// view
+<ul>
+    // Doesn't work!
+    @foreach (Album album in ViewBag.Albums) {
+        <li>@album.Title</li>
+    }
+</ul>
+
+The compiler sees:
+
+1) ViewBag.Albums → type = object
+2) foreach needs IEnumerable type
+3) object doesn't guarantee it's enumerable
+
+As a result @foreach doesn't work.
+
+You need to cast ViewBag.Albums to enumerable:
+
+Example
+
+<ul>
+    // This works!
+    @foreach (Album album in (ViewBag.Albums as IEnumerable<Album>)) {
+        <li>@album.Title</li>
+    }
+</ul>
+
+
+Other problem - No compilation errors.
+
+typo (missing "b") -> ViewBag.Alums
+
+Doesn't trigger compile error.
+
+
+Other problem - ViewBag becomes messy
+for complex data.
+
+
+Model to View
+
+To benefit of type,
+we pass data to View.
+
+Example
+
+// model
+public class Album { ... }
+
+// controller
+public ActionResult List()
+{
+    List<Album> albums = new List<Album>();
+    for (int i = 0; i < 10; i++) {
+        albums.Add(new Album { Title = "Album " + i });
+    }
+    return View(albums);
+}
+
+// view
+@model IEnumerable<MyProject.Models.Album>
+<ul>
+    @foreach (Album album in Model) {
+        <li>@album.Title</li>
+    }
+</ul>
+
+We use Model (available by default).
+
+We specify data type of Model with:
+
+@model IEnumerable<MyProject.Models.Album>
+
+
+Limitations for complex data.
+
+When we need to combine different
+types of data, how to approach?
+
+The problem:
+
+- You have model for Product
+- You have model for User
+- How to combine two models in one view?
+
+Very bad decision:
+
+- To add User properties into Product model class.
+
+Example
+
+public class Product
+{
+    // Adding view-specific concerns - WRONG!
+    public string PageTitle { get; set; }
+    public User CurrentUser { get; set; }
+}
+
+
+Other way to solve Model + ViewBag:
+
+- Choose your main model for a view (let's say Product)
+- Add extra information via ViewBag.
+
+
+Example
+
+// controller
+public ActionResult List()
+{
+    List<Album> albums = new List<Album>();
+    for (int i = 0; i < 10; i++) {
+        albums.Add(new Album { Title = "Album " + i });
+    }
+    ViewBag.PageTitle = "My Albums"; // Extra data
+    ViewBag.CurrentUser = "admin"; // Extra data (from User Model)
+
+    return View(albums); // Main data
+}
+
+// view
+@using MyProject.Models
+@model IEnumerable<Album>
+
+<h1>@ViewBag.PageTitle</h1>
+<h2>user: @ViewBag.CurrentUser</h2>
+<ul>
+    @foreach (Album album in Model) {
+        <li>@album.Title</li>
+    }
+</ul>
+
+Still not typed for PageTitle or CurrentUser.
+
+
+
+ViewModel
+
+
+A special Model for view.
+
+
+Example
+
+// viewModel
+
+/Models/ViewModels/AlbumListViewModel.cs
+
+public class AlbumListViewModel
+{
+    public IEnumerable<Album> Albums { get; set; }
+    public string PageTitle { get; set; }
+    public string CurrentUser { get; set; }
+}
+
+// controller
+
+public ActionResult List()
+{
+    AlbumListViewModel viewModel = new AlbumListViewModel
+    {
+        Albums = albums,
+        PageTitle = "My Albums",
+        CurrentUser = "admin"
+    };
+    return View(viewModel);
+}
+
+// view
+
+@model AlbumListViewModel
+
+<h1>@Model.PageTitle</h1>
+<h2>user: @Model.CurrentUser</h2>
+<ul>
+    @foreach (Album album in Model.Albums) {
+        <li>@album.Title</li>
+    }
+</ul>
+
+
+
+The evolution:
+
+ViewBag ->>> Model ->>> Model + ViewBag ->>> ViewModel
+
+
+
+Step-by-step
+
+1) Create new Controller
+
+> dotnet new mvccontroller -n AlbumsController -o Controllers
+
+And add code.
+
+2) Create new Model
+
+> dotnet new class -n Album -o Models
+
+And add code.
+
+3) Create new ViewModel
+
+> dotnet new class -n AlbumListViewModel -o Models/ViewModels
+
+And add code.
+
+4) Create View
+
+> dotnet new view -n List -o Views/Albums
+
+And add code.
+
+5) Build the app
+
+> dotnet run
+
+6) See the result
+
+http://localhost:5235/Albums/List
+
+
+
+
+
+
+
+
+
+
+Thank you!
