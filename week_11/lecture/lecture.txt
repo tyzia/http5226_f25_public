@@ -1,0 +1,1259 @@
+
+
+
+
+
+
+
+
+
+
+Plan
+
+
+
+DbContext
+DbSet
+.AddDbContext()
+.ToList()
+.ToListAsync()
+.AsQueryable();
+CRUD Operations
+NotFound();
+.ThenInclude()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DbContext
+
+
+
+
+
+Let's explore one of the most fundamental
+concepts in Entity Framework (EF) - the DbContext.
+
+Think of DbContext as a bridge between your app
+and database.
+
+DbContext handles all database interactions.
+
+
+
+What is DbContext?
+
+DbContext is the main class that coordinates
+Entity Framework functionality for a data model.
+
+
+It manages:
+
+- Database connections
+- Entity tracking
+- Change tracking
+- CRUD operations (Create, Read, Update, Delete)
+- Transaction management
+
+
+
+DbContext is associated with DbSet.
+
+
+
+
+What are DbSets?
+
+DbSet<T> represents a table or a collection of
+entities in your database.
+
+Each DbSet corresponds to a database table.
+
+These are NOT the tables themselves, but
+rather the .NET representation of DB tables.
+
+
+Example
+
+public DbSet<Artist> Artists { get; set; }
+
+
+Here:
+
+DbSet<Artist> Artists -> represents "Artists" table in DB.
+This table has entries, each entry represents
+Artist model/type -> <Artist>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Let's see the mechanics of how to use DbContext
+for MVC app.
+
+
+
+
+1) We start with DB.
+
+As you remember from previous lectures,
+there are different DB engines
+(see week_6)
+
+Popular Database Engines:
+
+MySQL          (Popular, free, open-source)
+SQL Server     (Microsoft, enterprise-grade)
+PostgreSQL     (Advanced features, open-source)
+Oracle         (Enterprise, high-performance)
+Sqlite         (Lightweight, file-based)
+
+
+I am using Sqlite as it is file-based and lightweight.
+
+
+
+To create a DB with Sqlite you need:
+
+1. SQL queries for DB creation.
+2. Sqlite CLI command to execute these SQL queries.
+
+
+Example:
+
+sql_schemas.sql
+CREATE TABLE Artists (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Name TEXT NOT NULL,
+    CreatedDate DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+
+> sqlite3 MyDBFile.db < sql_schemas.sql
+
+This command will execute SQl from sql_schemas.sql file
+and create a DB and save it into a file 'MyDBFile.db'.
+
+This is our starting point.
+
+How to use this DB file in MVC app?
+
+
+
+2) Copy DB file into Data/
+
+
+We are going to use DB file from previous step.
+By convention, this file should be saved into Data/ folder.
+
+> mkdir Data/
+> cp MyDBFile.db /Data
+
+
+
+
+
+3) We need Models, corresponding to DB tables
+
+(see week_10 lecture)
+
+
+Example
+
+Models/Artist.cs
+
+namespace MusicStore.Models
+{
+    public class Artist
+    {
+        public int ArtistId { get; set; }
+        public string Name { get; set; } = string.Empty;
+
+        public virtual ICollection<Album> Albums { get; set; } = new List<Album>();
+    }
+}
+
+
+
+
+
+
+4) We need DbContext to connect MVC with DB file.
+
+
+If we are building a MusicStore, then we are
+going to create Data/MusicStoreContext.cs file.
+
+
+Example
+
+MusicStoreContext.cs
+
+using Microsoft.EntityFrameworkCore;
+using MusicStore.Models;
+
+namespace MusicStore.Data
+{
+    public class MusicStoreContext : DbContext
+    {
+        public MusicStoreContext(DbContextOptions<MusicStoreContext> options) : base(options) { }
+
+        public DbSet<Artist> Artists { get; set; }
+        public DbSet<Genre> Genres { get; set; }
+        public DbSet<Album> Albums { get; set; }
+    }
+}
+
+Let's break this down:
+
+Inheritance
+public class MusicStoreContext : DbContext <- MusicStoreContext inherits from DbContext
+
+Constructor:
+public MusicStoreContext(...) <- A constructor
+
+Options
+DbContextOptions<MusicStoreContext> options <- Configuration settings
+
+Parent constructor
+: base(options) <- Calls the constructor of the parent class (DbContext) and passes the options
+
+
+This allows the base DbContext to be
+properly configured with your database settings.
+
+DbSet
+public DbSet<Artist> Artists { get; set; } <- Corresponds to a database table.
+
+
+
+
+
+
+
+
+
+5) We need to configure our app to use DbContext.
+
+demo/Program.cs
+
+Open Program.cs and add this:
+
+...
+builder.Services.AddDbContext<MusicStoreContext>(options =>
+    options.UseSqlite("Data Source=Data/MyDBFile.db"));
+...
+
+What's happening here?
+
+builder.Services.AddDbContext<MusicStoreContext>
+
+Registers your DbContext with the dependency injection container.
+
+options => options.UseSqlite(...) <- Configures which database provider to use (Sqlite)
+
+"Data Source=Data/MusicStore.db" <- Connection string pointing to your SQLite file
+
+
+...
+builder.Services.AddHttpContextAccessor();
+...
+
+AddHttpContextAccessor() <- Makes the current HTTP context available
+
+
+How It All Works Together
+
+- Request comes in to your MVC application
+- Dependency Injection provides a MusicStoreContext instance
+- DbContext uses the SQLite configuration to connect to your database
+- You use DbSets to query and manipulate data
+- Changes are saved back to the database
+
+
+
+
+
+
+6) Update Controller to use DB data
+
+
+Without DB our Controller looked like this:
+
+(demo/NoDB/StoreController.cs)
+
+// /Store/Browse?genre=Rock
+
+public IActionResult Browse(string genre)
+{
+    List<Album> allAlbums = GetSampleAlbums();
+
+    if (string.IsNullOrEmpty(genre))
+    {
+        AlbumListViewModel viewModel = new AlbumListViewModel
+        {
+            Albums = allAlbums,
+            PageTitle = "All Albums", // If genre filter is empty, we show all albums
+            SelectedGenre = "All"
+        };
+        return View(viewModel);
+    }
+
+    List<Album> filteredAlbums = allAlbums.Where(a => a.Genre.Name == genre).ToList();
+
+    AlbumListViewModel filteredViewModel = new AlbumListViewModel
+    {
+        Albums = filteredAlbums,
+        PageTitle = $"Genre: {genre}",
+        SelectedGenre = genre
+    };
+
+    return View(filteredViewModel);
+}
+
+
+Our private method to return mock data:
+
+private List<Album> GetSampleAlbums()
+{
+    List<Artist> artists = new List<Artist>
+    {
+        new Artist { ArtistId = 1, Name = "The Beatles" },
+        ...
+    };
+
+    List<Genre> genres = new List<Genre>
+    {
+        new Genre { GenreId = 1, Name = "Rock" },
+        ...
+    };
+
+    List<Album> albums = new List<Album>
+    {
+        new Album { AlbumId = 1, Title = "Abbey Road", ArtistId = 1, GenreId = 1, Artist = artists[0], Genre = genres[0] },
+        ...
+    };
+
+    return albums;
+}
+
+
+
+
+To replace mock data with the data coming from DB
+we need to import MusicStoreContext:
+
+
+(demo/DB/StoreController.cs)
+
+
+First step - include context.
+
+
+Example
+
+public class StoreController : Controller
+{
+...
+    private readonly MusicStoreContext _context;
+
+    public StoreController(MusicStoreContext context)
+    {
+        _context = context;
+    }
+}
+
+
+
+
+
+Next step - create and execute SQL query.
+
+
+
+Let's assume I want something like this:
+
+"Give me all albums of Metallica and
+their artist information from DB".
+
+In SQL this would look like:
+
+SELECT a.*, ar.*
+FROM Albums a
+INNER JOIN Artists ar ON a.ArtistId = ar.Id
+WHERE artist.Name = 'Metallica'
+
+Here:
+
+FROM Albums a ... <- 'a' is alias of 'Albums'
+Alias is used to make queries shorter and easier to read.
+
+SELECT a.* ... <- all columns from Albums table. Same as Albums.*
+
+INNER JOIN Artists ar ON a.ArtistId = ar.Id <- Condition how to connect
+two tables together based on Foreign Key.
+
+Essentially it says:
+
+"Find all records in Artists table,
+related to Albums records,
+based on Foreign Key Id"
+
+
+
+
+
+I can't use "SELECT * ..." here, why?
+
+
+
+
+
+
+
+
+
+Because my SQL query joins two tables together
+and SELECT * would confuse DB engine. It will ask
+
+"Select all from which table? Albums or Artists?"
+
+That's why we have:
+
+SELECT a.*, ar.* ...
+
+
+
+
+In MVC code you don't write SQL query though.
+You create it like this:
+
+
+1. Start with context (your database bridge)
+_context.Albums
+
+2. Add JOIN to Artists table
+.Include(a => a.Artist)
+
+3. Add WHERE filter
+.Where(a => a.Artist.Name == "Metallica")
+
+4. Execute and get results as List
+.ToList();
+
+
+Example:
+
+List<Album> albums = _context.Albums
+    .Include(a => a.Artist)
+    .Where(a => a.Artist.Name == "Metallica")
+    .ToList();
+
+
+
+
+Now our controller code would look like this:
+
+
+
+Example
+
+// Nothing changed in Browse()
+
+public IActionResult Browse(string genre)
+{
+    List<Album> allAlbums = GetSampleAlbums();
+
+    if (string.IsNullOrEmpty(genre))
+    {
+        AlbumListViewModel viewModel = new AlbumListViewModel
+        {
+            Albums = allAlbums,
+            PageTitle = "All Albums", // If genre filter is empty, we show all albums
+            SelectedGenre = "All"
+        };
+        return View(viewModel);
+    }
+
+    List<Album> filteredAlbums = allAlbums.Where(a => a.Genre.Name == genre).ToList();
+
+    AlbumListViewModel filteredViewModel = new AlbumListViewModel
+    {
+        Albums = filteredAlbums,
+        PageTitle = $"Genre: {genre}",
+        SelectedGenre = genre
+    };
+
+    return View(filteredViewModel);
+}
+
+// Main change in this method
+
+private List<Album> GetSampleAlbums()
+{
+    // Now gets real data from database
+    return _context.Albums
+            .Include(a => a.Artist)
+            .Include(a => a.Genre)
+            .ToList();
+}
+
+
+
+So far the only difference we have is
+in GetSampleAlbums() method.
+
+
+
+
+
+This approach is inefficient:
+
+...
+GetSampleAlbums();
+...
+allAlbums.Where(a => a.Genre.Name == genre).ToList();
+...
+
+What we have here:
+
+1. Get ALL albums from DB without filter.
+2. Filer this collection of objects in C# code in Controller.
+
+
+All filtering ideally should happen on DB side.
+
+
+We can remove GetSampleAlbums() method and
+refactor Browse() method.
+
+
+
+Example
+
+
+public IActionResult Browse(string genre)
+{
+    if (string.IsNullOrEmpty(genre))
+    {
+        // Get all albums
+        List<Album> allAlbums = _context.Albums
+            .Include(a => a.Artist)
+            .Include(a => a.Genre)
+            .ToList();
+
+        return View(new AlbumListViewModel
+        {
+            Albums = allAlbums,
+            PageTitle = "All Albums",
+            SelectedGenre = "All"
+        });
+    }
+    else
+    {
+        // Filter in DATABASE - only get what we need
+        List<Album> filteredAlbums = _context.Albums
+            .Include(a => a.Artist)
+            .Include(a => a.Genre)
+            .Where(a => a.Genre.Name == genre)
+            .ToList();
+
+        return View(new AlbumListViewModel
+        {
+            Albums = filteredAlbums,
+            PageTitle = $"Genre: {genre}",
+            SelectedGenre = genre
+        });
+    }
+}
+
+
+
+
+
+
+There is still an issue with this code.
+
+We are calling DB in 2 places:
+
+// One
+List<Album> allAlbums = _context.Albums
+            .Include(a => a.Artist)
+            .Include(a => a.Genre)
+            .ToList();
+
+// Two
+List<Album> filteredAlbums = _context.Albums
+            .Include(a => a.Artist)
+            .Include(a => a.Genre)
+            .Where(a => a.Genre.Name == genre)
+            .ToList();
+
+
+We can use .AsQueryable() to construct our
+DB query dynamically and execute it only once.
+
+
+Example
+
+public IActionResult Browse(string genre)
+{
+    var query = _context.Albums
+        .Include(a => a.Artist)
+        .Include(a => a.Genre)
+        .AsQueryable();
+
+    if (!string.IsNullOrEmpty(genre))
+    {
+        query = query.Where(a => a.Genre.Name == genre);
+    }
+
+    List<Album> albums = query.ToList(); // One call to DB
+
+    AlbumListViewModel viewModel = new AlbumListViewModel
+    {
+        Albums = albums,
+        PageTitle = string.IsNullOrEmpty(genre) ? "All Albums" : $"Genre: {genre}",
+        SelectedGenre = genre ?? "All"
+    };
+
+    return View(viewModel);
+}
+
+
+
+Here:
+
+...
+var query = _context.Albums
+        .Include(a => a.Artist)
+        .Include(a => a.Genre)
+        .AsQueryable();
+
+We started to construct the query, but
+we don't execute it yet.
+
+Next, we update the query based on
+some logic:
+
+...
+if (!string.IsNullOrEmpty(genre))
+{
+    query = query.Where(a => a.Genre.Name == genre);
+}
+
+
+And finally when we are ready, we send request to DB:
+
+...
+List<Album> albums = query.ToList();
+
+
+
+
+
+
+The last thing what we can still improve here
+is the performance. So far all our calls to DB
+are synchronous, meaning if they take too long
+to execute, our app would be blocking DB engine.
+
+
+Example
+
+_context.Albums.ToList(); // ❗ BLOCKS THREAD
+
+What happens:
+
+- A makes request → Thread #1 waits for DB → Thread #1 is stuck
+- B makes request → Thread #2 waits for DB → Thread #2 is stuck
+- C makes request → Thread #3 waits for DB → Thread #3 is stuck
+- D makes request → All 3 available threads are stuck -> DB returns "Server Too Busy" error
+- E makes request → All 3 available threads are stuck -> DB returns "Server Too Busy" error
+
+Problem: When no threads left → New users get errors or timeouts.
+
+
+Solution:
+
+We can unblock threads using async calls to DB.
+
+
+of the app, though absence of DB data
+would still block the View from appearing.
+
+But at least, other users of the app would
+not be blocked from using the same app.
+
+
+Example
+
+public async Task<IActionResult> Browse(string genre)
+{
+    var query = _context.Albums
+        .Include(a => a.Artist)
+        .Include(a => a.Genre)
+        .AsQueryable();
+
+    if (!string.IsNullOrEmpty(genre))
+    {
+        query = query.Where(a => a.Genre.Name == genre);
+    }
+
+    List<Album> albums = await query.ToListAsync();
+
+    AlbumListViewModel viewModel = new AlbumListViewModel
+    {
+        Albums = albums,
+        PageTitle = string.IsNullOrEmpty(genre) ? "All Albums" : $"Genre: {genre}",
+        SelectedGenre = genre ?? "All"
+    };
+
+    return View(viewModel);
+}
+
+
+Key Changes:
+
+1) Method signature
+public async Task<IActionResult> Browse(string genre)
+
+2) Await the query
+List<Album> albums = await query.ToListAsync();
+
+3) Use ToListAsync() Instead of ToList()
+List<Album> albums = await query.ToListAsync();
+
+
+
+What Each Change Does:
+
+async: Marks the method as asynchronous
+
+Task<IActionResult>: Wraps the return type for async operations
+
+await: Pauses method execution until the database query completes
+
+ToListAsync(): The async version of ToList() that doesn't block threads
+
+
+
+
+
+
+
+As a result:
+
+- A makes request → Thread #1 starts DB call → Thread #1 is freed
+- B makes request → Thread #1 starts DB call → Thread #1 is freed
+- C makes request → Thread #1 starts DB call → Thread #1 is freed
+- D makes request → Thread #1 starts DB call → Thread #1 is freed
+- E makes request → Thread #1 starts DB call → Thread #1 is freed
+...
+
+Server stays responsive and no "Server Too Busy" errors.
+
+
+
+
+
+
+
+
+
+CRUD Operations in Entity Framework
+
+
+Examples
+
+
+
+
+Create -> .Add() + .SaveChangesAsync()
+
+
+Let's say we want to add cart into Carts collection:
+
+Cart cart = new Cart();
+_context.Carts.Add(cart);
+await _context.SaveChangesAsync(); // Insert into DB
+
+
+
+
+
+Read -> .FindAsync(), .FirstOrDefaultAsync(), .ToListAsync()
+
+
+
+.FindAsync()
+
+
+FindAsync() is a special Entity Framework
+method that finds an entity by its primary key.
+
+It's optimized for looking up single records by ID.
+
+
+Example
+
+Album album = await _context.Albums.FindAsync(id);
+
+Generated SQL:
+
+SELECT * FROM Albums WHERE AlbumId = @id;
+
+
+
+
+
+
+
+.FirstOrDefaultAsync()
+
+
+
+FirstOrDefaultAsync() is an Entity Framework method that:
+
+- Finds the FIRST record that matches your condition
+- OR returns NULL if no record is found
+- Executes asynchronously (doesn't block threads)
+
+
+Example
+
+var album = await _context.Albums
+    .Include(a => a.Artist)
+    .FirstOrDefaultAsync(a => a.AlbumId == id);
+
+Find ONE album by ID.
+
+
+
+
+Examples
+
+// Read by primary key
+Cart cart = await _context.Carts.FindAsync(id);
+
+// Read by any condition
+Cart cart = await _context.Carts.FirstOrDefaultAsync(c => c.Id == id);
+
+// Read all records
+List<Cart> carts = await _context.Carts.ToListAsync();
+
+
+
+
+
+Update -> .FindAsync() + update + .SaveChangesAsync()
+
+Let's say we want to update cart properties based on condition:
+
+Cart cart = await _context.Carts.FindAsync(id);
+cart.LastUpdated = DateTime.Now;  // Modify properties
+await _context.SaveChangesAsync();
+
+
+
+
+Delete -> .FindAsync() + .Remove() + .SaveChangesAsync()
+
+Let's say we want to delete cart based on condition:
+
+Cart cart = await _context.Carts.FindAsync(id);
+_context.Carts.Remove(cart);
+await _context.SaveChangesAsync();
+
+
+
+
+
+
+
+
+
+
+
+
+
+Nothing found (404 error)
+
+
+
+If nothing was found in DB, we should return
+error page.
+
+
+Example
+
+var artist = await _context.Artists
+    .Include(a => a.Albums)
+    .FirstOrDefaultAsync(a => a.ArtistId == id);
+
+if (artist == null)
+{
+    return NotFound();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+.ThenInclude()
+
+
+
+
+.Include() starts loading a related
+collection/reference.
+
+
+.ThenInclude() continues from the
+LAST .Include() to go one level deeper.
+
+Use them together to eager load
+nested relationships with LEFT JOIN.
+
+
+
+Example
+
+await _context.Artists
+    .Include(a => a.Albums)
+    .ThenInclude(alb => alb.Genre)
+
+
+Entity Framework Processes Results:
+
+1) Builds Artist objects
+2) For each Artist, builds Album objects and links them
+3) For each Album, builds Genre objects and links them
+4) Final Result - One Artist object with all related objects.
+
+
+
+
+
+Example
+
+var cart = await _context.Carts
+    .Include(c => c.CartItems)
+    .ThenInclude(ci => ci.Album)
+    .ThenInclude(a => a.Artist)
+    .FirstOrDefaultAsync(c => c.SessionId == sessionId);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tips for Group Assignment:
+
+
+
+
+
+- ignore SessionId in Carts table
+
+
+
+
+
+
+How to filter results based on query string?
+
+public async Task<IActionResult> Index(string? genre)
+{
+    var artists = _context.Artists
+        .Include(a => a.Albums)
+        .ThenInclude(alb => alb.Genre)
+        .AsQueryable();
+
+    if (!string.IsNullOrEmpty(genre))
+    {
+        artists = artists.Where(a => a.Albums.Any(alb => alb.Genre.Name == genre));
+    }
+
+    ArtistListViewModel viewModel = new ArtistListViewModel
+    {
+        Genres = await _context.Genres.ToListAsync(),
+        Artists = await artists.ToListAsync();
+    };
+
+    if (!string.IsNullOrEmpty(genre))
+    {
+        viewModel.SelectedGenre = genre;
+        viewModel.PageTitle = $"{genre} Artists";
+    }
+
+    if (string.IsNullOrEmpty(viewModel.PageTitle))
+    {
+        viewModel.PageTitle = "All Artists";
+    }
+
+    return View(viewModel);
+}
+
+
+
+
+
+
+How to create Cart?
+
+public async Task<IActionResult> Index()
+{
+    var cart = await _context.Carts
+            .Include(c => c.CartItems)
+            .ThenInclude(ci => ci.Album)
+            .FirstOrDefaultAsync(c => c.CartId == 1);
+
+    if (cart == null)
+    {
+        // Create demo cart once
+        cart = new Cart { CartId = 1, Description = "Demo Cart" };
+        _context.Carts.Add(cart);
+        await _context.SaveChangesAsync();
+    }
+
+    CartViewModel viewModel = new CartViewModel
+    {
+        CartItems = cart.CartItems.ToList(),
+        Subtotal = cart.CartItems.Sum(ci => ci.Album.Price * ci.Quantity),
+        TotalItems = cart.CartItems.Sum(ci => ci.Quantity)
+    };
+
+    return View(viewModel);
+}
+
+
+
+
+
+How to add item to cart?
+
+public async Task<IActionResult> Add(int id)
+{
+    var album = await _context.Albums.FindAsync(id);
+    if (album == null)
+    {
+        return NotFound();
+    }
+
+    var cart = await _context.Carts
+                    .Include(c => c.CartItems)
+                    .ThenInclude(ci => ci.Album)
+                    .FirstOrDefaultAsync(c => c.CartId == 1);
+
+    if (cart == null)
+    {
+        // Create demo cart once
+        cart = new Cart { CartId = 1, Description = "Demo Cart" };
+        _context.Carts.Add(cart);
+        await _context.SaveChangesAsync();
+    }
+
+    var cartItem = cart.CartItems.FirstOrDefault(ci => ci.AlbumId == id);
+
+    if (cartItem != null)
+    {
+        cartItem.Quantity++;
+    }
+    else
+    {
+        cartItem = new CartItem { AlbumId = id, Quantity = 1 };
+        cart.CartItems.Add(cartItem);
+    }
+
+    cart.LastUpdated = DateTime.Now;
+    await _context.SaveChangesAsync();
+
+    return RedirectToAction(nameof(Index));
+}
+
+
+
+
+
+How to update quantity of cart items?
+
+public async Task<IActionResult> Update(int id, int quantity)
+{
+    var cart = await _context.Carts
+                .Include(c => c.CartItems)
+                .ThenInclude(ci => ci.Album)
+                .FirstOrDefaultAsync(c => c.CartId == 1);
+
+    if (cart == null)
+    {
+        // Create demo cart once
+        cart = new Cart { CartId = 1, Description = "Demo Cart" };
+        _context.Carts.Add(cart);
+        await _context.SaveChangesAsync();
+    }
+    var cartItem = cart.CartItems.FirstOrDefault(ci => ci.AlbumId == id);
+
+    if (cartItem != null)
+    {
+        if (quantity <= 0)
+        {
+            cart.CartItems.Remove(cartItem);
+        }
+        else
+        {
+            cartItem.Quantity = quantity;
+        }
+
+        cart.LastUpdated = DateTime.Now;
+        await _context.SaveChangesAsync();
+    }
+
+    return RedirectToAction(nameof(Index));
+}
+
+
+
+
+
+
+How to search for artist name?
+
+...
+artists = artists.Where(a => a.Name.Contains(search));
+
+
+
+
+How to show totals?
+
+
+// Count all orders
+TotalOrders = orders.Count;
+
+// Sum of all amounts
+TotalRevenue = orders.Sum(o => o.TotalAmount);
+
+ // Count orders based on condition
+PendingOrders = orders.Count(o => o.Status == "Pending";
+
+// SELECT COUNT(DISTINCT CustomerEmail) FROM Orders;
+TotalCustomers = await _context.Orders.Select(o => o.CustomerEmail).Distinct().CountAsync(),
+
+// Select only 5 latest orders
+RecentOrders = orders.OrderByDescending(o => o.OrderDate).Take(5).ToList()
+
+
+
+
+
+
+How to display -/+ buttons in Cart view?
+
+<form method="get" action="/Cart/Update/@item.AlbumId">
+    <input type="hidden" name="quantity" value="@(item.Quantity - 1)">
+    <button type="submit"> - </button>
+</form>
+
+<form method="get" action="/Cart/Update/@item.AlbumId">
+    <input type="hidden" name="quantity" value="@(item.Quantity + 1)">
+    <button type="submit"> + </button>
+</form>
+
+
+
+
+
+How to display 'Remove' button in Cart view?
+
+<a href="/Cart/Remove/@item.AlbumId"> Remove </a>
+
+
+
+How to display 'Continue Shopping' button in Cart View?
+
+ <a href="/Store/Browse"> Continue Shopping </a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Thank you.
