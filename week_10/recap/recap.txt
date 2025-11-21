@@ -7,19 +7,16 @@ Razor is a server-side markup language
 for embedding C# code into HTML.
 
 Example
-
 @{
-    // C# code block
+    // Razor allows C# code block
     string studentName = "John Smith";
 }
 <p>Name: @studentName</p>
 
-Result in browser:
-<p>Name: John Smith</p>
+Result in browser: <p>Name: John Smith</p>
 
 
-To understand where C# ends, Razor
-uses "boundary" (space, punctuation, HTML tags).
+Razor uses space, punctuation, HTML tags as "boundary".
 
 Example
 
@@ -28,30 +25,7 @@ Example
 <p>Hello <strong>@studentName</strong>!</p>
 
 
-Code blocks
-
-Used to execute multiple lines of C# code
-without rendering directly to output.
-
-Example
-@{
-    // C# code
-}
-
-
 Control structures
-
-
-@if (condition) {
-    // HTML here
-} else {
-    // HTML here
-}
-
-@foreach (var item in collection) {
-    // HTML here
-}
-
 
 Example
 
@@ -67,24 +41,17 @@ Example
 
 Escaping
 
-If you need @ (at) sign to display literally
-on a page, you need to escape it with @
-
-Example
+Use extra @ (at) sign to display
+@ literally (except for emails)
 
 <p>Follow at @@humber</p>
-
-
-Exception - emails, do not need escape.
-
 <p>Email: john.doe@humber.ca</p>
 
 
 HTML Encoding & XSS
 
-Razor expressions are automatically HTML
-encoded which prevents Cross-Site Scripting
-(XSS) attacks.
+Razor prevents Cross-Site Scripting
+(XSS) attacks by automatically encoding HTML.
 
 Example
 
@@ -93,15 +60,12 @@ Example
 }
 <p>@msg</p>
 
-
 Result output:
 
 <p>&lt;script&gt;alert('hacked');&lt;/script&gt;</p>
 
 
-
-@Html.Raw()
-Renders html tags as is.
+@Html.Raw() - renders HTML tags as is.
 Use with extreme caution!
 
 Example
@@ -121,18 +85,11 @@ Layout
 
 To display repeated elements
 (<html>, <head>, <header>, <footer>)
-use layout page:
-
-Views/Shared/_Layout.cshtml
-
-This is master template.
-
-Views inject their html through
-@RenderBody() method.
-
+use layout page with @RenderBody() method.
 
 Example
 
+Views/Shared/_Layout.cshtml
 <!DOCTYPE html>
 <html>
 <head> ... </head>
@@ -151,24 +108,7 @@ Custom layout files
 You can create your own layout file
 and use it inside views.
 
-/Views/Shared/CustomLayout.cshtml
-
-<!DOCTYPE html>
-<html>
-<head>
-    <title>@ViewBag.PageTitle</title>
-</head>
-<body>
-    <h1>Custom Website</h1>
-    <section>
-        @RenderBody()
-    </section>
-</body>
-</html>
-
-
 /Views/Home/Index.cshtml
-
 @{
     Layout = "~/Views/Shared/CustomLayout.cshtml";
     ViewBag.PageTitle = "My awesome page";
@@ -202,7 +142,6 @@ We can add sections to layout with:
 @section Footer {
     // content
 }
-
 
 
 /Views/Shared/CustomLayout.cshtml
@@ -250,14 +189,6 @@ specified in your layout file!
 
 Doesn't work:
 
-/Views/Shared/CustomLayout.cshtml
-<!DOCTYPE html>
-...
-    <footer>@RenderSection("Footer")</footer>
-...
-</html>
-
-
 /Views/Home/Index.cshtml
 @{
     Layout = "~/Views/Shared/CustomLayout.cshtml";
@@ -267,53 +198,25 @@ Doesn't work:
 <p>Simple content</p>
 
 
-
 Solutions for missing sections:
 
-- make it optional
-- use if check
+- Make it optional:
+
+@RenderSection("Footer", { required: false })
+
+- Use if check:
+
+@if (IsSectionDefined("Footer")) {
+    RenderSection("Footer");
+} else {
+    <span>Nothing to display</span>
+}
 
 
-If you want to make section optional,
-you can add { required: false }
+_ViewStart.cshtml
 
-This works!
-
-/Views/Shared/CustomLayout.cshtml
-<!DOCTYPE html>
-...
-    <footer>@RenderSection("Footer", { required: false })</footer>
-...
-</html>
-
-
-Or use @if block.
-
-This works!
-
-<!DOCTYPE html>
-...
-    <footer>
-    @if (IsSectionDefined("Footer")) {
-        RenderSection("Footer");
-    } else {
-        <span>Nothing to display</span>
-    }
-    </footer>
-...
-</html>
-
-
-
-
-
-ViewStart
-
-Instead of specifying Layout
-for each View, we can define common
-layout in
-
-Views/_ViewStart.cshtml
+Runs before any view is rendered,
+usually used for Layout definition.
 
 Example
 
@@ -321,20 +224,13 @@ Example
     Layout = "_Layout";
 }
 
-_ViewStart.cshtml
-A special file that runs before any view is rendered.
-
-
-
 Step by step how View works:
 
 Request → Routing → Controller → Action Method →
 View() → _ViewStart → Layout → @RenderBody() → View Content
 
 
-If you need to override shared layout
-file, you can do that individually
-inside a view:
+You can override shared Layout in the View:
 
 @{
     Layout = "~/Views/Shared/CustomLayout.cshtml";
@@ -342,7 +238,103 @@ inside a view:
 <p> Using custom layout </p>
 
 
+Database & Keys
 
+Models in ASP.NET should mirror
+Database tables and columns.
+
+Artists
+        name
+        ----------
+        The Beatles
+Genres
+        name
+        ----------
+        Rock
+Albums
+        name
+        ----------
+        Let it be
+
+Primary Key
+For DB efficiently we add ids.
+
+PK is a column with unique value, usually a number.
+
+Purpose: To ensure we can select one,
+and only one, record.
+
+Artists
+        id    name
+        ----------------
+        87    The Beatles
+Genres
+        id    name
+        ----------
+        11    Rock
+Albums
+        id    name
+        ----------------
+        27    Let it be
+
+Compare
+SELECT * FROM Albums WHERE name = 'Let it be';
+
+With
+SELECT * FROM Albums WHERE id = 1;
+
+
+A better naming with custom ids:
+
+Artists
+        artistId  name
+        ----------------
+        87        The Beatles
+Genres
+        genreId   name
+        ----------------
+        11        Rock
+Albums
+        albumId   name
+        ----------------
+        27        Let it be
+
+We use Foreign Keys to connect tables.
+
+Albums
+        albumId   name        artistId (FK)	  genreId (FK)
+        -----------------------------------------------
+        27        Let it be   87              11
+
+Primary Key must be unique
+
+Doesn't work!
+
+    artistId (PK)  name
+    -----------------------
+    87             The Beatles
+    87             Oasis     <<<< same artistId
+
+This works
+
+    artistId (PK)  name
+    -----------------------
+    87             The Beatles
+    88             The Beatles    <<<<< diff artistId, same name
+    89             Oasis          <<<<< diff artistId
+
+
+
+Normalization - avoiding repeating the artist's name
+and using ids as FK.
+
+Albums (bad design - prone to mistakes)
+
+    id   name        artistName	    genreName
+    ----------------------------------------
+    27   Let it be   The Beatles    Rock
+
+To update artist name - search all DB.
 
 
 Models
@@ -352,220 +344,30 @@ Represent the data (objects) and business logic.
 "Scaffolding" - creation of controllers, views,
 models.
 
-
-
-Database & Keys
-
-Models in ASP.NET should mirror
-Database tables and columns.
-
-Example
-
-3 tables in DB
-
-Artists
-name
-----------------
-The Beatles
-
-
-Genres
-name
-----------
-Rock
-
-
-Albums
-name
-----------------
-Let it be
-
-
-
-We need ids here to index/search
-DB efficiently.
-
-Compare
-
-SELECT * FROM Albums WHERE name = 'Let it be';
-
-With
-
-SELECT * FROM Albums WHERE id = 1;
-
-
-After adding ids:
-
-
-Artists
-id    name
-----------------
-87    The Beatles
-
-Genres
-id    name
-----------
-11    Rock
-
-Albums
-id    name
-----------------
-27    Let it be
-
-
-A better naming with
-custom ids:
-
-
-Artists
-artistId   name
-----------------
-87         The Beatles
-
-Genres
-genreId   name
-----------------
-11        Rock
-
-Albums
-albumId   name
-----------------
-27        Let it be
-
-
-
-How do we connect tables?
-
-Album 'Let It Be' is associated with
-artist 'The Beatles' and genre 'Rock'.
-
-Solution:
-
-We add the IDs from the Artists and
-Genres tables directly into the Albums table.
-
-These are called Foreign Keys.
-
-
-Albums
-
-albumId   name        artistId (FK)	  genreId (FK)
------------------------------------------------
-27        Let it be   87              11
-
-The Albums table now has two new columns:
-
-- artistId
-- genreId
-
-These values act as a reference to other table.
-
-
-Primary Key
-
-A column in a table
-which holds a unique value, usually a number.
-
-Purpose: To ensure we can pinpoint one,
-and only one, record.
-
-
-Example
-
-Doesn't work!
-
-artistId (PK)  name
------------------------
-87             The Beatles
-87             Oasis     <<<< same artistId
-
-
-This works
-
-artistId (PK)  name
------------------------
-87             The Beatles
-88             The Beatles    <<<<< diff artistId, same name
-89             Oasis          <<<<< diff artistId
-
-
-
-
-Normalization
-
-
-Albums (bad design)
-
-id   name        artistName	    genreName
-----------------------------------------
-27   Let it be   The Beatles    Rock
-
-
-Here you have exact names instead of ids.
-This will work.
-
-To update artist name you would need to
-search all DB and make changes. It is prone
-to mistakes.
-
-Normalization - avoiding repeating the artist's name
-and using ids as FK.
-
-
-
-
-
-
-
-
-
-
-
-
 Models represent the same columns and
 relationships between tables.
 
-
-Example
-
 Models/Album.cs
-
 public class Album
 {
     public int AlbumId { get; set; } <<<<< Primary Key
     ...
     public int GenreId { get; set; }  <<<<< Foreign key
     public int ArtistId { get; set; }  <<<<< Foreign key
-}
-
-
-
-
-Virtual property
-
-
-public class Album
-{
-    public int AlbumId { get; set; }
     ...
     public virtual Genre Genre { get; set; }   <<<< virtual property
     public virtual Artist Artist { get; set; }   <<<< virtual property
 }
 
-
+Virtual property
 These are not columns in the database!
 
 Entity Framework uses virtual property to
 automatically select related entities in the DB.
 
 
-
-
-
 How to connect all together:
 Model + Controller + View
-
-
 
 Task:
 
@@ -620,7 +422,6 @@ namespace MusicStore.Models
     }
 }
 
-
 Step 3: Create ViewModel
 
 Models/ViewModels/AlbumListViewModel.cs
@@ -634,7 +435,6 @@ namespace MusicStore.Models.ViewModels
         public string SelectedGenre { get; set; }
     }
 }
-
 
 Step 4: Create Controller
 
@@ -683,11 +483,9 @@ Views/Store/Index.cshtml
     }
 </section>
 
-
-
 Step 6. Add link for the new page to navigation
 
-Open /Views/Shared/_Layout.cshtml
+Views/Shared/_Layout.cshtml
 
 Add:
 
