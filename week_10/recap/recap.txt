@@ -1,0 +1,716 @@
+Recap from Week 10
+(delivered on Week 11)
+
+
+
+Razor is a server-side markup language
+for embedding C# code into HTML.
+
+Example
+
+@{
+    // C# code block
+    string studentName = "John Smith";
+}
+<p>Name: @studentName</p>
+
+Result in browser:
+<p>Name: John Smith</p>
+
+
+To understand where C# ends, Razor
+uses "boundary" (space, punctuation, HTML tags).
+
+Example
+
+<p>@studentName is enrolled</p>
+<p>Name: @studentName; ID: @studentId</p>
+<p>Hello <strong>@studentName</strong>!</p>
+
+
+Code blocks
+
+Used to execute multiple lines of C# code
+without rendering directly to output.
+
+Example
+@{
+    // C# code
+}
+
+
+Control structures
+
+
+@if (condition) {
+    // HTML here
+} else {
+    // HTML here
+}
+
+@foreach (var item in collection) {
+    // HTML here
+}
+
+
+Example
+
+@if (Model.IsOnSale) {
+    <h3 class="sale-price">@Model.Price</h3>
+} else {
+    <h3>@Model.Price</h3>
+}
+
+@foreach(int studentId in students) {
+    <li>Student with ID: @studentId</li>
+}
+
+Escaping
+
+If you need @ (at) sign to display literally
+on a page, you need to escape it with @
+
+Example
+
+<p>Follow at @@humber</p>
+
+
+Exception - emails, do not need escape.
+
+<p>Email: john.doe@humber.ca</p>
+
+
+HTML Encoding & XSS
+
+Razor expressions are automatically HTML
+encoded which prevents Cross-Site Scripting
+(XSS) attacks.
+
+Example
+
+@{
+    string msg = "<script>alert('hacked');</script>";
+}
+<p>@msg</p>
+
+
+Result output:
+
+<p>&lt;script&gt;alert('hacked');&lt;/script&gt;</p>
+
+
+
+@Html.Raw()
+Renders html tags as is.
+Use with extreme caution!
+
+Example
+
+@{
+    string msg = "<strong>Humber</strong>";
+}
+<p>@Html.Raw(msg)</p>
+
+Result output:
+
+<p><strong>Humber</strong></p>
+
+
+
+Layout
+
+To display repeated elements
+(<html>, <head>, <header>, <footer>)
+use layout page:
+
+Views/Shared/_Layout.cshtml
+
+This is master template.
+
+Views inject their html through
+@RenderBody() method.
+
+
+Example
+
+<!DOCTYPE html>
+<html>
+<head> ... </head>
+<body>
+    <header>...</header>
+    <main>
+        @RenderBody()
+    </main>
+    <footer>...</footer>
+</body>
+</html>
+
+
+Custom layout files
+
+You can create your own layout file
+and use it inside views.
+
+/Views/Shared/CustomLayout.cshtml
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewBag.PageTitle</title>
+</head>
+<body>
+    <h1>Custom Website</h1>
+    <section>
+        @RenderBody()
+    </section>
+</body>
+</html>
+
+
+/Views/Home/Index.cshtml
+
+@{
+    Layout = "~/Views/Shared/CustomLayout.cshtml";
+    ViewBag.PageTitle = "My awesome page";
+}
+<p>Simple content</p>
+
+
+The rendered result:
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My awesome page</title> <!-- <<<< here ViewBag.PageTitle -->
+</head>
+<body>
+    <h1>Custom Website</h1>
+    <section>
+        <p>Simple content</p> <!-- <<<< here @RenderBody() -->
+    </section>
+</body>
+</html>
+
+
+
+Sections
+
+We can add sections to layout with:
+
+@RenderSection([Section Name])
++
+@section Footer {
+    // content
+}
+
+
+
+/Views/Shared/CustomLayout.cshtml
+
+<!DOCTYPE html>
+<html>
+<head> ... </head>
+<body>
+    <section> @RenderBody() </section>
+    <footer>@RenderSection("Footer")</footer>
+</body>
+</html>
+
+
+/Views/Home/Index.cshtml
+@{
+    Layout = "~/Views/Shared/CustomLayout.cshtml";
+    ViewBag.PageTitle = "My awesome page";
+}
+@section Footer {
+    This is <strong>my page</strong>
+}
+<p>Simple content</p>
+
+
+The rendered result:
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My awesome page</title>
+</head>
+<body>
+    <section>
+        <p>Simple content</p>
+    </section>
+    <footer>This is <strong>my page</strong></footer>
+</body>
+</html>
+
+
+
+You must define all sections
+specified in your layout file!
+
+Doesn't work:
+
+/Views/Shared/CustomLayout.cshtml
+<!DOCTYPE html>
+...
+    <footer>@RenderSection("Footer")</footer>
+...
+</html>
+
+
+/Views/Home/Index.cshtml
+@{
+    Layout = "~/Views/Shared/CustomLayout.cshtml";
+    ViewBag.PageTitle = "My awesome page";
+}
+// missing section definition here
+<p>Simple content</p>
+
+
+
+Solutions for missing sections:
+
+- make it optional
+- use if check
+
+
+If you want to make section optional,
+you can add { required: false }
+
+This works!
+
+/Views/Shared/CustomLayout.cshtml
+<!DOCTYPE html>
+...
+    <footer>@RenderSection("Footer", { required: false })</footer>
+...
+</html>
+
+
+Or use @if block.
+
+This works!
+
+<!DOCTYPE html>
+...
+    <footer>
+    @if (IsSectionDefined("Footer")) {
+        RenderSection("Footer");
+    } else {
+        <span>Nothing to display</span>
+    }
+    </footer>
+...
+</html>
+
+
+
+
+
+ViewStart
+
+Instead of specifying Layout
+for each View, we can define common
+layout in
+
+Views/_ViewStart.cshtml
+
+Example
+
+@{
+    Layout = "_Layout";
+}
+
+_ViewStart.cshtml
+A special file that runs before any view is rendered.
+
+
+
+Step by step how View works:
+
+Request → Routing → Controller → Action Method →
+View() → _ViewStart → Layout → @RenderBody() → View Content
+
+
+If you need to override shared layout
+file, you can do that individually
+inside a view:
+
+@{
+    Layout = "~/Views/Shared/CustomLayout.cshtml";
+}
+<p> Using custom layout </p>
+
+
+
+
+
+Models
+
+Represent the data (objects) and business logic.
+
+"Scaffolding" - creation of controllers, views,
+models.
+
+
+
+Database & Keys
+
+Models in ASP.NET should mirror
+Database tables and columns.
+
+Example
+
+3 tables in DB
+
+Artists
+name
+----------------
+The Beatles
+
+
+Genres
+name
+----------
+Rock
+
+
+Albums
+name
+----------------
+Let it be
+
+
+
+We need ids here to index/search
+DB efficiently.
+
+Compare
+
+SELECT * FROM Albums WHERE name = 'Let it be';
+
+With
+
+SELECT * FROM Albums WHERE id = 1;
+
+
+After adding ids:
+
+
+Artists
+id    name
+----------------
+87    The Beatles
+
+Genres
+id    name
+----------
+11    Rock
+
+Albums
+id    name
+----------------
+27    Let it be
+
+
+A better naming with
+custom ids:
+
+
+Artists
+artistId   name
+----------------
+87         The Beatles
+
+Genres
+genreId   name
+----------------
+11        Rock
+
+Albums
+albumId   name
+----------------
+27        Let it be
+
+
+
+How do we connect tables?
+
+Album 'Let It Be' is associated with
+artist 'The Beatles' and genre 'Rock'.
+
+Solution:
+
+We add the IDs from the Artists and
+Genres tables directly into the Albums table.
+
+These are called Foreign Keys.
+
+
+Albums
+
+albumId   name        artistId (FK)	  genreId (FK)
+-----------------------------------------------
+27        Let it be   87              11
+
+The Albums table now has two new columns:
+
+- artistId
+- genreId
+
+These values act as a reference to other table.
+
+
+Primary Key
+
+A column in a table
+which holds a unique value, usually a number.
+
+Purpose: To ensure we can pinpoint one,
+and only one, record.
+
+
+Example
+
+Doesn't work!
+
+artistId (PK)  name
+-----------------------
+87             The Beatles
+87             Oasis     <<<< same artistId
+
+
+This works
+
+artistId (PK)  name
+-----------------------
+87             The Beatles
+88             The Beatles    <<<<< diff artistId, same name
+89             Oasis          <<<<< diff artistId
+
+
+
+
+Normalization
+
+
+Albums (bad design)
+
+id   name        artistName	    genreName
+----------------------------------------
+27   Let it be   The Beatles    Rock
+
+
+Here you have exact names instead of ids.
+This will work.
+
+To update artist name you would need to
+search all DB and make changes. It is prone
+to mistakes.
+
+Normalization - avoiding repeating the artist's name
+and using ids as FK.
+
+
+
+
+
+
+
+
+
+
+
+
+Models represent the same columns and
+relationships between tables.
+
+
+Example
+
+Models/Album.cs
+
+public class Album
+{
+    public int AlbumId { get; set; } <<<<< Primary Key
+    ...
+    public int GenreId { get; set; }  <<<<< Foreign key
+    public int ArtistId { get; set; }  <<<<< Foreign key
+}
+
+
+
+
+Virtual property
+
+
+public class Album
+{
+    public int AlbumId { get; set; }
+    ...
+    public virtual Genre Genre { get; set; }   <<<< virtual property
+    public virtual Artist Artist { get; set; }   <<<< virtual property
+}
+
+
+These are not columns in the database!
+
+Entity Framework uses virtual property to
+automatically select related entities in the DB.
+
+
+
+
+
+How to connect all together:
+Model + Controller + View
+
+
+
+Task:
+
+Our app should display a list of albums
+with album details and genre filtering on
+the same page.
+
+
+Step 1: Create the MVC Application
+> dotnet new mvc -n MusicStore
+
+Step 2: Create Models based on DB
+
+Table      columns
+--------------------------
+Artist     artistId (PK), name
+Genre      genreId (PK), name
+Album      albumId (PK), title, artistId (FK), genreId (FK)
+
+Models/Artist.cs
+namespace MusicStore.Models
+{
+    public class Artist
+    {
+        public int ArtistId { get; set; }
+        public string Name { get; set; }
+    }
+}
+
+Models/Genre.cs
+namespace MusicStore.Models
+{
+    public class Genre
+    {
+        public int GenreId { get; set; }
+        public string Name { get; set; }
+    }
+}
+
+Models/Album.cs
+namespace MusicStore.Models
+{
+    public class Album
+    {
+        public int AlbumId { get; set; }
+        public string Title { get; set; }
+        public int ArtistId { get; set; }
+        public int GenreId { get; set; }
+
+        public virtual Artist Artist { get; set; }
+        public virtual Genre Genre { get; set; }
+    }
+}
+
+
+Step 3: Create ViewModel
+
+Models/ViewModels/AlbumListViewModel.cs
+using MusicStore.Models;
+namespace MusicStore.Models.ViewModels
+{
+    public class AlbumListViewModel
+    {
+        public List<Album> Albums { get; set; }
+        public string PageTitle { get; set; }
+        public string SelectedGenre { get; set; }
+    }
+}
+
+
+Step 4: Create Controller
+
+Controllers/StoreController.cs
+namespace MusicStore.Controllers
+{
+    public class StoreController : Controller
+    {
+        public IActionResult Index()
+        {
+            // Mock data
+            List<Artist> artists = new List<Artist> { ... };
+            List<Genre> genres = new List<Genre> { ... };
+            List<Album> albums = new List<Album> { ... };
+
+            AlbumListViewModel viewModel = new AlbumListViewModel
+            {
+                Albums = albums,
+                PageTitle = "All Albums",
+                SelectedGenre = "All"
+            };
+
+            return View(viewModel);
+        }
+    }
+}
+
+Step 5: Create View
+
+Views/Store/Index.cshtml
+@model MusicStore.Models.ViewModels.AlbumListViewModel
+@{
+    ViewData["Title"] = "Music Store";
+}
+<h1>@Model.PageTitle</h1>
+
+<section>
+    @foreach (Album album in Model.Albums)
+    {
+        <div>
+            <h2>@album.Title</h2>
+            <p>Artist: @album.Artist.Name</p>
+            <p>Genre: @album.Genre.Name</p>
+        </div>
+        <hr>
+    }
+</section>
+
+
+
+Step 6. Add link for the new page to navigation
+
+Open /Views/Shared/_Layout.cshtml
+
+Add:
+
+<li class="nav-item">
+    <a class="nav-link text-dark"
+    asp-controller="Store"
+    asp-action="Index">Store</a>
+</li>
+
+
+Step 7: Run app
+
+> dotnet run
+
+https://localhost:7000/Store - Shows all albums
+
+
+
+
+
+
+
+
+
+
+Thank you!
