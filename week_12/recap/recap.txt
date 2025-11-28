@@ -1,0 +1,406 @@
+Recap from Week 12
+(delivered on Week 13)
+
+
+Form fundamentals:
+
+<form action="#" method="post">
+...
+</form>
+
+action - URL to send data to.
+method - GET/POST how to send data.
+
+GET
+
+- To retrieve data (search, filter)
+- Appends data to the URL (in the query string).
+- Not for sensitive data.
+
+POST
+
+- To send data and change state (create, update, delete)
+- Appends to the body of the HTTP request.
+- Secure for sensitive data.
+
+
+Security concerns with GET
+
+Never send sensitive data (passwords) with GET request!
+
+GET appends data to the URL
+
+Example
+
+https://domain.com/search?query=YYY
+
+
+Possible attack scenarios:
+
+1) Attacker reads server logs
+and sees: GET /login?password=secret HTTP/1.1" 200
+
+2) Attacker uses shoulder surfing
+and sees: https://domain.com/login?password=secret
+
+
+Building Forms in MVC
+
+Simple form example:
+
+View:
+<input type="text" name="Email">
+
+Controller
+public IActionResult Register(string Email) {
+    return View();
+}
+
+Here we specify 'name' as 'Email' for
+input and for method argument.
+
+
+For large forms, other approach is better.
+
+1. ViewModel listing all form controls.
+2. Controller method to accept ViewModel
+   and pass it to the View.
+3. View and use 'asp-for' special attributes
+   for form controls.
+
+
+
+Example
+
+Step 1: Create ViewModel
+
+public class SimpleFormViewModel
+{
+    public string Email { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    ...
+}
+
+Step 2: Controller
+
+public IActionResult Index()
+{
+    return View(new SimpleFormViewModel());
+}
+
+public IActionResult Register(SimpleFormViewModel model)
+{
+    ...
+}
+
+Step 3: View
+
+@model SimpleFormViewModel
+
+<form action="Home/Register" method="get">
+  <input asp-for="FirstName">
+  <input asp-for="LastName">
+  <input asp-for="Email">
+  ...
+</form>
+
+
+
+Adding types to inputs.
+
+
+public class SimpleFormViewModel
+{
+    [EmailAddress]  // ← Makes <input type="email">
+    public string Email { get; set; }
+
+    [DataType(DataType.Password)]  // ← Makes <input type="password">
+    public string Password { get; set; }
+}
+
+
+
+Validation
+
+
+Not enough!
+
+<input asp-for="Password" required>
+
+Absolutely necessary to add
+server-side validation!
+
+Example
+
+public class SimpleFormViewModel
+{
+    [Required]   <<< server side validation
+    [DataType(DataType.Password)]
+    public string Password { get; set; }
+}
+
+
+To check validation errors use ModelState:
+
+public IActionResult Register(var model)
+{
+    if (!ModelState.IsValid)   <<< validation
+    {
+        return View(model);
+    }
+}
+
+
+model vs ModelState
+
+model has raw data sent from user.
+ModelState has validation results.
+
+{
+    "password": ""   <<<< empty value for password
+}
+
+ModelState
+{
+    "password": { IsValid = false, Errors = ["Required"] },
+}
+
+
+Labels
+
+Use [Display] attribute for labels.
+
+
+Example
+
+public class SimpleFormViewModel
+{
+    [Required]
+    [Display(Name = "Your Email")]   <<< add this for label
+    [EmailAddress]
+    public string Email { get; set; }
+}
+
+The View:
+
+<label asp-for="Email"></label>
+<input asp-for="Email" required>
+
+
+If you miss [Display] attribute:
+
+public class SimpleFormViewModel
+{
+    [Required]
+                      <<< forgot to add [Display]
+    [EmailAddress]
+    public string Email { get; set; }
+}
+
+Razor uses field name for label:
+
+<label for="Email">Email</label>
+
+
+To make a form with POST method:
+
+[HttpPost]     <<<< add this attribute
+public IActionResult Register(var model)
+{
+    ...
+}
+
+
+Form tag creation
+
+1) <form asp-action="Create" asp-controller="Students">
+
+2) <form action="Students/Create">
+
+Both will create this:
+
+<form action="/Students/Create">
+
+
+If router settings change:
+
+ app.MapControllerRoute(
+     name: "default",
+     pattern: "api/{controller}/{action}/{id?}");  <<< add api/
+
+
+1) <form asp-action="Create" asp-controller="Students"> -> works
+2) <form action="/Students/Create">                     -> 404 error
+
+
+Dropdowns
+
+public class EmployeeViewModel
+{
+    public int DepartmentId { get; set; }    <<<< for <select>
+}
+
+Use ViewBag:
+
+public IActionResult Create()
+{
+    var model = new EmployeeViewModel();
+
+    var items = new[]
+        {
+            new { Id = 1, Name = "Engineering" },
+            new { Id = 2, Name = "Marketing" },
+            new { Id = 3, Name = "Sales" }
+        };
+
+    ViewBag.Departments = new SelectList(items, "Id", "Name");   <<< options for <select>
+
+    return View(model);
+}
+
+View:
+
+<select asp-for="DepartmentId" asp-items="ViewBag.Departments">
+    <option value="">-- Select Department --</option>
+</select>
+
+
+Checkbox
+
+Issue with <input type="checkbox">
+
+- If user doesn't select it, nothing is sent.
+- If user selects it, value 'true' is sent.
+
+That means 'false' value is never sent.
+
+
+MVC framework fixes this with hidden input:
+
+<input type="checkbox" name="IsEnrolled" value="true">
+<input type="hidden" name="IsEnrolled" value="false">
+
+Scenarios:
+
+1) User didn't select checkbox,
+only hidden value sent (false)
+
+IsEnrolled = false
+
+2) User selects checkbox,
+both hidden value (false) & checkbox value (true) are sent.
+
+IsEnrolled = false
+IsEnrolled = true
+
+
+On server side MVC uses:
+
+For scenario 1 - false
+For scenario 2 - true
+
+
+To create a checkbox we need a boolean in Model:
+
+public class StudentViewModel
+{
+    public bool IsEnrolled { get; set; }  <<<< Must be bool
+}
+
+View:
+
+<input asp-for="IsEnrolled">
+
+
+
+
+
+type="password"
+
+
+For password fields you need [DataType(DataType.Password)]
+
+public class StudentViewModel
+{
+    [DataType(DataType.Password)]   <<< add this
+    public string Password { get; set; }
+}
+
+View:
+
+<input asp-for="Password">
+
+
+
+type="hidden"
+
+Three ways to create hidden input:
+
+1) Use "Id" as property name
+(ex, Id, CustomerId)
+
+2) Add [HiddenInput] to Property
+
+3) Add type="hidden" in View
+
+
+
+
+
+
+1) Example
+
+public class StudentViewModel
+{
+    public string Id { get; set; }    <<< Id as a name
+}
+
+
+2) Example
+
+public class StudentViewModel
+{
+    [HiddenInput]     <<<< attribute
+    public string SecretCode { get; set; }
+}
+
+
+3) Example
+
+<input type="hidden" asp-for="SomeField">
+
+
+
+Redirect in controller:
+
+return RedirectToAction("Success", "Account");
+
+
+
+To create error message:
+
+Model
+
+[Required(ErrorMessage = "AAAAA")]
+public string UserName { get; set; }
+
+[EmailAddress(ErrorMessage = "BBBBB")]
+public string Email { get; set; }
+
+[StringLength(50, MinimumLength = 2, ErrorMessage = "CCCCC")]
+public string LastName { get; set; }
+
+View
+
+<span asp-validation-for="UserName"></span>
+<span asp-validation-for="Email"></span>
+<span asp-validation-for="LastName"></span>
+
+
+
+
+
+
+
+Thank you!
