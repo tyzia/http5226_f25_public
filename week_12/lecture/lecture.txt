@@ -1,0 +1,1010 @@
+
+
+
+
+
+Plan
+
+Web Forms Fundamentals
+GET/POST
+Forms in MVC
+asp-for
+Adding types
+[Required]
+ModelState
+Labels
+[HttpPost]
+<form>
+Dropdowns
+Checkboxes
+Passwords
+Hidden inputs
+
+
+
+
+
+
+
+Web Forms
+
+
+
+
+
+
+
+
+
+
+
+
+Fundamentals
+
+
+
+
+Every time you log in, or search, or add an item to a shopping cart,
+you're using a web form.
+
+It's the primary way users interact with a web application.
+
+To recap:
+
+<form action="#" method="POST">
+    <label for="name_id">Full Name:</label>
+    <input type="text" id="name_id" name="full_name">
+
+    <label for="email">Email Address:</label>
+    <input type="email" id="email" name="email_field">
+
+    <button type="submit">Submit</button>
+</form>
+
+
+Core Components:
+
+action
+
+The URL where the form data is sent.
+In MVC, this is a Controller Action (e.g., /Home/Submit).
+
+method
+
+The HTTP verb used for the request (GET or POST).
+
+
+- GET
+Used for retrieving data (searches, filters)
+Appends data to the URL (in the query string).
+Not for sensitive data.
+
+demo/get.html
+
+- POST
+Sends data in the body of the HTTP request.
+Used for changing state on the server (creating, updating, deleting).
+Secure for sensitive data.
+
+demo/post.html
+
+
+
+
+
+Security concerns with GET
+
+Never send sensitive data (passwords) with GET request!
+
+
+Problem. Get attaches data to URL as query string.
+
+Example:
+
+<form action="domain.com/search" method="get">
+    <input type="text" name="query">
+</form>
+
+Result: https://domain.com/search?query=YYY
+
+
+demo/get.html
+
+
+Possible attack scenarios:
+
+1) Server logs expose URLs with passwords.
+
+- Attacker breaches web server
+- Checks /var/log/nginx/access.log
+- Sees: GET /login?password=secret HTTP/1.1" 200
+
+
+2) Shoulder surfing or screen recording exposes credentials.
+
+- Victim screenshares in a meeting.
+- URL bar shows: bank.com/login?password=secret
+- Recording software captures it.
+
+
+
+
+
+Form Pattern in MVC
+
+Form is rendered in the HTML ->
+User fills in the form and submits ->
+The browser sends a request to the server ->
+Controller Handles request
+
+
+
+In case of GET request:
+
+The browser sends a GET request to the server ->
+The Controller receives the data ->
+Processes it and displays results
+
+
+
+
+In case of POST request:
+
+The browser sends a POST request to the server ->
+The Controller receives the data, validates it, and
+- if valid, saves it and redirects.
+- if invalid, it re-displays the form with error message
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Building Forms in MVC Core
+
+
+
+
+
+
+Task: Let's create a simple input for email.
+
+
+We can do it simple way:
+
+Add to View:
+
+<form action="Home/Register" method="get">
+  <input type="text" name="Email">
+</form>
+
+
+But the question here - how to pass
+data from this input to MVC?
+
+Once user submits this input,
+Controller would be the first
+to respond to that request.
+
+
+So to make it work, adding <input>
+to a view is not enough. We need
+to update Controller and create a method.
+
+
+HomeController.cs
+public IActionResult Register() { return View(); }
+
+
+This still is not enough because
+our controller's method Register() doesn't accept
+any arguments. So whatever user types
+into <input> will be ignored by our
+controller.
+
+
+We need to update Register() method signature
+so that it accepts argument with exactly
+the same name as the name of our input:
+
+<input type="text" name="Email">   <<<< Email name
+
+HomeController.cs
+public IActionResult Register(string Email) {  <<< Email as well
+    return View();
+}
+
+
+
+
+
+In real-world apps, you don't have single form control,
+you have many. And with the quantity of controls
+comes the problem.
+
+Problem - many controls.
+
+<form action="Home/Register" method="get">
+  <input type="text" name="FirstName">
+  <input type="text" name="LastName">
+  <input type="email" name="Email">
+  <input type="password" name="Password">
+  <input type="text" name="City">
+  <input type="text" name="Country">
+</form>
+
+
+Now, to get their values in controller,
+I would need to update arguments like this:
+
+HomeController.cs
+public IActionResult Register(
+    string FirstName,    <<<< list all controls by name here
+    string LastName,
+    string Email,
+    string Password,
+    string City,
+    string Country)
+{
+    // Hard to maintain, easy to make typos
+}
+
+
+
+
+For this reason even for simple
+forms in MVC it is encouraged to use
+this approach:
+
+1. Create ViewModel listing all your form controls.
+2. Create Controller methods to accept ViewModel
+   and pass it to the View
+3. Create a View and use 'asp-for' special attributes
+   for form controls.
+
+
+Example
+
+
+Step 1: Create ViewModel
+
+// All fields organized in one object
+
+public class SimpleFormViewModel
+{
+    public string Email { get; set; }
+    public string FirstName { get; set; }
+    public string LastName { get; set; }
+    ...
+}
+
+
+Step 2: Controller
+
+public IActionResult Index()
+{
+    return View(new SimpleFormViewModel());
+}
+
+public IActionResult Register(SimpleFormViewModel model)
+{
+    // Easy to maintain
+}
+
+
+Step 3: View
+
+@model SimpleFormViewModel
+
+<form action="Home/Register" method="get">
+  <input asp-for="FirstName">
+  <input asp-for="LastName">
+  <input asp-for="Email">
+  ...
+</form>
+
+
+Result:
+
+<form action="Home/Register" method="get">
+    <input type="text" id="FirstName" name="FirstName">
+    <input type="text" id="LastName" name="LastName">
+    <input type="text" id="Email" name="Email">
+    ...
+</form>
+
+
+
+
+
+We have an improvement, but MVC
+can help us even more.
+
+Adding types to inputs.
+
+
+I will make change in one place -
+in ViewModel by adding special meta tags
+and improve my form.
+
+
+Example
+
+public class SimpleFormViewModel
+{
+    [EmailAddress]  // ← Makes it type="email"
+    public string Email { get; set; }
+
+    [DataType(DataType.Password)]  // ← Makes it type="password"
+    public string Password { get; set; }
+
+}
+
+And I don't change the view code,
+it stays the same:
+
+<input asp-for="Password">
+<input asp-for="Email">
+
+
+Result:
+
+<input type="password" id="Password" name="Password">  <<< type="password"
+<input type="email" id="Email" name="Email">   <<< type="email"
+
+
+
+
+
+Next improvement - we can add validation.
+
+We can use HTML 5 syntax.
+
+
+
+The wrong way to add it - only in the View:
+
+<input asp-for="Password" required>
+
+This will make password field required.
+User will not be able to submit the form
+with this input blank.
+
+But it is so easy to hack.
+
+demo/required.html
+
+
+
+
+It is absolutely necessary to add
+server-side validation.
+
+This can be added in ViewModel:
+
+
+public class SimpleFormViewModel
+{
+    [Required]   <<< add this for server side validation
+    [EmailAddress]
+    public string Email { get; set; }
+}
+
+
+Now, if user will try to submit empty
+Email field, we can first check in the
+controller if values pass the validation.
+
+
+HomeController.cs
+public IActionResult Register(SimpleFormViewModel model)
+{
+    if (!ModelState.IsValid)   <<< here we check the validation
+    {
+        return View(model);
+    }
+}
+
+
+
+Note, that we don't have something like:
+
+if (!model.IsValid) ...
+
+
+model vs ModelState
+
+model always contains raw data
+submitted from the browser.
+
+If user bypassed our client validation
+and sent us empty password, it will
+be reflected in 'model':
+
+json
+{
+    "password": ""   <<<< empty value for password
+}
+
+At the same time ModelState will
+run checks according to our attributes
+from ViewModel and have a result of validation:
+
+ModelState tracks:
+
+- Which fields passed/failed validation
+- Error messages for each field
+- The original submitted values
+
+
+Here what happens during Model binding:
+
+1) User submits: password="" (empty)
+2) Model binding creates model object with this raw values
+3) Validation occurs against data annotations:
+
+  [Required] on password → fails (empty string)
+
+4) Results stored in ModelState:
+
+ModelState = {
+    "password": { IsValid = false, Errors = ["Required"] },
+}
+
+
+That's why in the controller we check for validation
+like this:
+
+public IActionResult Register(RegisterViewModel model)
+{
+    if (!ModelState.IsValid)
+    {
+        // Return the model so the view can repopulate form fields
+        // with the invalid data the user submitted
+        return View(model);
+    } else {
+        return Content($"Thank you! Your email: {model.Email}");
+    }
+}
+
+
+
+
+
+
+
+Labels
+
+
+To add a label to a field, you need to
+add [Display(Name = "YYYY")] to the model property.
+
+The [Display] attribute centralizes how your model
+properties are presented to users across the entire application.
+
+
+Example
+
+public class SimpleFormViewModel
+{
+    [Required]
+    [Display(Name = "Your Email")]   <<< add this for label
+    [EmailAddress]
+    public string Email { get; set; }
+}
+
+
+The View:
+
+<label asp-for="Email"></label>
+<input asp-for="Email" required>
+
+
+Result:
+
+<label for="Email">Your Email</label>
+<input type="email" name="Email" id="Email" required>
+
+
+How this works:
+
+- Razor encounters <label asp-for="Email">
+- Looks at SimpleFormViewModel.Email property
+- Checks for [Display] attribute
+- If found, uses Name property value
+- If not found, uses the property name
+
+
+
+
+If you don't add [Display] attribute
+here what will be displayed:
+
+
+public class SimpleFormViewModel
+{
+    [Required]
+                      <<< forgot to add [Display] attribute
+    [EmailAddress]
+    public string Email { get; set; }
+}
+
+
+Generates: <label for="Email">Email</label>
+
+Instead of: <label for="Email">Your Email</label>
+
+
+
+Benefits of [Display]
+
+1) Consistency: Same label used everywhere for that property
+2) Separation: Model defines the display text, view just references it
+
+
+
+
+So final code will be this:
+
+
+ViewModel
+public class SimpleFormViewModel
+{
+    [Required]
+    [Display(Name = "Your Email")]
+    [EmailAddress]
+    public string Email { get; set; }
+}
+
+View
+<form action="Home/Register" method="get">
+    <label asp-for="Email"></label>
+    <input asp-for="Email" required>
+</form>
+
+Result:
+
+<form action="Home/Register" method="get">
+    <label for="Email">You Email</label>
+    <input type="email" id="Email" name="Email" required>
+</form>
+
+
+
+
+
+
+
+
+
+
+
+
+So far we were working with GET request.
+To have form sending POST request and
+reacting to that request in the controller,
+we need:
+
+
+Use the same ViewModel, no changes here.
+
+public class SimpleFormViewModel
+{
+    [Required]
+    [Display(Name = "Your Email")]
+    [EmailAddress]
+    public string Email { get; set; }
+}
+
+
+Update View:
+
+<form action="Home/Register" method="post">   <<<< change method to POST here
+  <label asp-for="Email"></label>
+  <input asp-for="Email" required>
+  ...
+</form>
+
+
+Result:
+
+<form action="Home/Register" method="post">
+    <label for="Email">You Email</label>
+    <input type="text" id="Email" name="Email" required>
+    ...
+</form>
+
+
+The only change we need - in Controller:
+
+[HttpPost]     <<<< add this attribute
+public IActionResult Register(SimpleFormViewModel model)
+{
+    return Content($"Thank you! Your email: {model.Email}");
+}
+
+
+
+
+
+
+When you create <form> tag in the View,
+you have two options:
+
+1)
+
+<form asp-action="Create" asp-controller="Students">
+
+2)
+
+<form action="Students/Create">
+
+
+Option 1 is more flexible. It relies on
+your app routing configuration:
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+
+If you keep your routing configuration default,
+both options will render the same form:
+
+1) <form asp-action="Create" asp-controller="Students"> -> <form action="/Students/Create">
+2) <form action="/Students/Create">                     -> <form action="/Students/Create">
+
+But with Option 1 you can update your routing
+config and all will work, but Option 2 will stop working:
+
+
+pattern: "api/{controller}/{action}/{id?}");  <<<< New route pattern
+
+Now here what will be as result:
+
+1) <form asp-action="Create" asp-controller="Students"> -> <form action="/api/Students/Create">
+2) <form action="/Students/Create">                     -> <form action="/Students/Create">
+
+
+There is no such endpoint any more /Students/Create,
+request will return 404 error.
+
+
+
+
+
+
+
+
+
+
+Dropdowns (<select>)
+
+
+Let's say I want to display this dropdown:
+
+<select name="DepartmentId" id="DepartmentId">
+    <option value="">-- Select Department --</option>
+    <option value="1">Engineering</option>
+    <option value="2">Marketing</option>
+    <option value="3">Sales</option>
+</select>
+
+
+
+
+We start with ViewModel:
+
+public class EmployeeViewModel
+{
+    public int DepartmentId { get; set; }    <<<< for <select>
+}
+
+
+
+Next, we update Controller
+and use ViewBag for options:
+
+
+public IActionResult Create()
+{
+    var model = new EmployeeViewModel();
+
+    var items = new[]
+        {
+            new { Id = 1, Name = "Engineering" },
+            new { Id = 2, Name = "Marketing" },
+            new { Id = 3, Name = "Sales" }
+        };
+
+    ViewBag.Departments = new SelectList(items, "Id", "Name");   <<< options for <select>
+
+    return View(model);
+}
+
+
+Here:
+
+"Id" is the number used as value    >>>   <option value="1">
+"Name" is visible text   >>>>  ...Engineering</option>
+
+
+
+Now we can use it in the View:
+
+<select asp-for="DepartmentId" asp-items="ViewBag.Departments">
+    <option value="">-- Select Department --</option>
+</select>
+
+
+
+
+
+
+
+
+
+Other common Input Tag Helpers
+
+
+
+
+
+Checkbox
+
+
+To create a checkbox we need a boolean in Model:
+
+public class StudentViewModel
+{
+    public bool IsEnrolled { get; set; }  <<<< Must be bool
+}
+
+View:
+
+<input asp-for="IsEnrolled">
+
+
+Result:
+
+<input type="checkbox" name="IsEnrolled" id="IsEnrolled" value="true">
+<input type="hidden" name="IsEnrolled" value="false">
+
+
+You may notice that result has two inputs.
+This solves a default problem with all checkboxes.
+
+
+There is an issue with all <input type="checkbox">
+
+If user doesn't select it, nothing is sent.
+If user selects it, value 'true' is sent.
+
+demo/checkbox.html
+
+
+
+
+So having this in UI:
+
+
+<input type="checkbox" name="IsEnrolled" value="true">
+<input type="hidden" name="IsEnrolled" value="false">
+
+
+Will result in this:
+
+1) User didn't select checkbox.
+
+IsEnrolled=false  <<< sent from <input type="hidden">
+
+2) User selects checkbox.
+
+IsEnrolled=false  <<< sent from <input type="hidden">
+IsEnrolled=true   <<< sent from <input type="checkbox">
+
+Because there are two controls with the
+same name - IsEnrolled, both values are sent:
+
+
+IsEnrolled=true
+IsEnrolled=false
+
+And MVC while getting these two, will keep only
+one - "true".
+
+
+type "hidden" means it is not visible on the page
+but it is always present in payload when
+form is submitted.
+
+demo/checkbox_hidden.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Password
+
+
+For password fields you need [DataType(DataType.Password)]
+
+public class StudentViewModel
+{
+    [DataType(DataType.Password)]
+    public string Password { get; set; }
+}
+
+
+View:
+
+<input asp-for="Password">
+
+
+Result:
+
+<input type="password" name="Password" id="Password">
+
+
+
+
+
+
+
+
+
+
+
+
+
+Hidden Field
+
+
+There are three ways how to make your
+input hidden:
+
+1) Use "Id" as property name
+(ex, Id, CustomerId)
+
+2) Add [HiddenInput] to Property
+
+3) Add type="hidden" to input
+
+
+
+
+
+
+1) Example
+
+public class StudentViewModel
+{
+    public string Id { get; set; }    <<< Id as a name
+}
+
+
+2) Example
+
+public class StudentViewModel
+{
+    [HiddenInput]     <<<< attribute
+    public string SecretCode { get; set; }
+}
+
+
+3) Example
+
+<input type="hidden" asp-for="SomeField">
+
+
+All three will produce same result:
+
+<input type="hidden">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Tips for the lab:
+
+
+
+To redirect to Success page if form submission is successful:
+
+[HttpPost]
+public IActionResult Register(...)
+{
+    ...
+    return RedirectToAction("Success", "Account");
+}
+
+
+
+
+
+
+
+
+To create error message in Model:
+
+[Required(ErrorMessage = "YYYYY")]
+public string UserName { get; set; }
+
+
+To display this message in View use 'asp-validation-for':
+
+<span asp-validation-for="UserName"></span>
+
+
+
+
+
+
+
+To display error message associated with the correct
+format of the email input:
+
+[EmailAddress(ErrorMessage = "YYYY")]
+
+
+
+
+
+
+
+
+To display error message associated with character limit:
+
+[StringLength(50, MinimumLength = 2, ErrorMessage = "YYYYY")]
+
+Or
+
+[MinLength(2, ErrorMessage = "YYYYY")]
+
+
+
+
+
+
+
+
+
+
+
+
+
+Thank you!
