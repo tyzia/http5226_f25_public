@@ -1,0 +1,681 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Plan
+
+
+Run-time errors
+Unhandled exception
+Null reference
+try-catch
+Exception Filter
+Middleware
+Security concerns
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Crashes
+
+
+
+
+
+
+Your app may crash for many reasons.
+
+To recap, there are two types of crashes:
+
+- Build errors
+- Run-time errors
+
+
+Build errors happen when you make a mistake
+in your code and try to build your app.
+
+We are building apps before we try to deploy
+it for public use.
+
+So if you have a build error, users will
+not see it, because your app will not build,
+and you won't deploy it or give it to users.
+
+
+Other types of errors, are more dangerous:
+run-time errors.
+
+That means that these errors originate in
+your code, but they have been triggered
+while running your app. Build was successful.
+But some scenario how user was running your
+app, caused a run-time error.
+
+This time user sees how app crashes and has
+bad user experience. We want to avoid this.
+
+
+
+
+
+
+
+
+
+Example (Unhandled exception)
+
+
+I would also demo how 'dotnet watch' works.
+
+"not all code paths return a value"
+I need to return something from my method
+
+
+
+
+
+> cd demo
+> dotnet new mvc -n Crash
+
+HomeController.cs
+public IActionResult Calculate(int a, int b)
+{
+    ViewBag.Result = a / b;
+    return View();
+}
+
+Views/Home/Calculate.cshtml
+<p>Result: @ViewBag.Result</p>
+
+> cd Crash
+> dotnet watch
+http://localhost:5195/Home/Calculate?a=4&b=2
+
+But if I try to divide by zero:
+http://localhost:5195/Home/Calculate?a=4&b=0
+
+Result:
+
+An unhandled exception occurred while processing the request.
+DivideByZeroException: Attempted to divide by zero.
+
+
+
+
+
+
+
+
+Example (Null reference)
+
+
+HomeController.cs
+public IActionResult Students(int studentId)
+{
+    ViewBag.Result = studentId == 1 ? new { Name = "Andrei" } : null;
+    return View();
+}
+
+Views/Home/Students.cshtml
+<p>Student: @ViewBag.Result.Name</p>
+
+It works for 1:
+http://localhost:5195/Home/Students?studentId=1
+
+
+It crashes for anything else:
+http://localhost:5195/Home/Students?studentId=2
+
+Result:
+RuntimeBinderException: Cannot perform runtime binding on a null reference
+
+
+
+
+
+
+
+
+Why this is bad?
+
+- Security: your code is exposed to users.
+- User experience
+- Trust/professionalism
+
+
+
+
+
+
+
+
+
+
+First and easy step to prevent
+run-time errors: try-catch block.
+
+
+
+
+Example
+
+
+public IActionResult Calculate(int a, int b)
+{
+    try {
+        ViewBag.Result = a / b;
+        return View();
+    }
+    catch (Exception ex)
+    {
+        ViewBag.Result = ex;
+        return View();
+    }
+}
+
+
+
+
+
+Questions to consider:
+
+"What if we have 50 actions? Do we copy-paste this 50 times?"
+
+"What if we forget try-catch in one action?"
+
+"Is there a better way?"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+To prevent run-time errors we are going
+to implement Exception Filters.
+
+
+
+
+
+
+MVC execution pipeline:
+
+Request → Action → Response
+
+
+
+
+We can add filters:
+
+Request → [FILTERS] → Action → [FILTERS] → Response
+
+
+
+
+
+
+
+
+Exception Filters - this is our safety net.
+
+Same as safety net in the circus, preventing
+artists from injury.
+
+Though, it doesn't prevent artist from falling!
+
+Exception Filter catches "falls" before
+they hit the "ground", in other words,
+catches "exceptions" before app "crashes".
+
+
+
+
+By default when exception happens in MVC
+it uses:
+
+
+1) Interface:
+
+public interface IExceptionFilter
+{
+    // MVC calls this when ANY action throws
+    void OnException(ExceptionContext context);
+}
+
+
+2) ExceptionContext class:
+
+public class ExceptionContext
+{
+    public Exception Exception { get; }      // What went wrong
+    public HttpContext HttpContext { get; }  // Who asked for it
+    public bool ExceptionHandled { get; set; } // Our responsibility!
+    public IActionResult Result { get; set; }  // What to show instead
+}
+
+
+
+
+When creating my filter, I can save it:
+
+Controllers/
+Filters/
+
+
+Filters/BasicExceptionFilter.cs
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc;
+
+public class BasicExceptionFilter : IExceptionFilter
+{
+    public void OnException(ExceptionContext context)
+    {
+        // 1. Tell MVC: "I got this!"
+        context.ExceptionHandled = true;
+
+        // 2. Show something
+        context.Result = new ContentResult
+        {
+            Content = "<h1>Something went wrong (filter)</h1>",
+            ContentType = "text/html"
+        };
+    }
+}
+
+
+Try to crash app:
+
+http://localhost:5195/Home/Calculate?a=4&b=0
+
+Nothing changed, because we didn't register our Filter.
+
+
+Add annotation to our controller:
+
+[TypeFilter(typeof(BasicExceptionFilter))]
+public class HomeController : Controller { ... }
+
+
+
+
+
+
+
+
+
+When creating filters remember these steps:
+
+1) context.ExceptionHandled = true;
+
+You need to notify MVC that you are handling
+this exception.
+
+2) context.Result = new ContentResult { ... };
+
+You pass ContentResult object to Result,
+it is displayed on the page.
+
+
+
+
+
+
+
+
+
+
+
+Middleware
+
+
+
+
+
+
+The above approach catches any exceptions
+originating in controller.
+
+Example
+
+...
+ViewBag.Result = a / b;
+return View();
+
+
+
+
+
+What about other exceptions?
+
+http://localhost:5195/Home/Students?studentId=2
+
+
+
+
+
+
+This exception originates in the View.
+
+To catch exceptions globally and not depend
+on where we catch them, we can use Middleware.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MVC uses an idea of a "pipeline".
+
+Pipeline - is the order components run
+during an HTTP request.
+
+
+You Program.cs file defines the pipeline
+for your application.
+
+Components in this pipeline are called
+"middleware".
+
+
+
+
+
+Example
+
+var app = builder.Build();
+
+app.UseExceptionHandler(...);     // Middleware #1
+app.UseHttpsRedirection();        // Middleware #2
+app.UseRouting();                 // Middleware #3
+app.UseAuthorization();           // Middleware #4
+app.MapControllerRoute(...);      // Middleware #5
+
+app.Run();
+
+
+
+Requests flow through these components in
+this exact order.
+
+If an exception happens in #3, #4, or #5,
+it bubbles back up through the pipeline
+and can be caught by #1.
+
+
+
+
+
+
+
+
+
+
+To add global exception, not limited to controller,
+we need to create a Middleware and add it
+to Program.cs.
+
+
+
+Program.cs
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.StatusCode = 401;
+        context.Response.ContentType = "text/html";
+        await context.Response.WriteAsync("<h1>Something went wrong (middleware)</h1>");
+    });
+});
+
+
+
+Note that we can return any error code here:
+context.Response.StatusCode = 401;
+
+
+
+
+demo:
+
+http://localhost:5195/Home/Students?studentId=2
+http://localhost:5195/Home/Calculate?a=4&b=0
+
+
+Now both exceptions are handled.
+
+
+
+
+
+
+
+
+
+
+Security concerns
+
+
+
+
+
+
+
+
+
+
+Let's check out these examples:
+
+
+1) Code reveals when user exists.
+
+public IActionResult Login(string username, string password)
+{
+    var user = _db.Users.FirstOrDefault(u => u.Username == username);
+
+    if (user.PasswordHash != Hash(password))
+        return Forbid("Password is incorrect"); <<< 403 Error
+
+    return SignIn(user);
+}
+
+
+
+Attacker tries "admin".
+
+url.com/Login?username=admin&password=dontknow
+
+App returns 403 Error + "Password is incorrect".
+
+Attacker now knows for 100% that you have 'admin' user.
+
+
+
+Result:
+
+Attacker has a list of your users
+(maybe not full, but still).
+
+
+Conclusion: never return these types of error
+messages from your code when user
+submits username + password:
+
+- "Password is incorrect"
+- "Username is incorrect"
+
+By returning these errors, you confirm that user exists.
+
+
+
+Solution:
+
+Always return generic error message:
+
+"Username or password is incorrect"
+
+This way you do not confirm that user exists.
+
+
+Example:
+
+You have 'admin' and password 'secret'.
+
+Attacker: 'admin' + 'dont_know'     -> Username or password is incorrect
+Attacker: 'dont_know' + 'dont_know' -> Username or password is incorrect
+Attacker: '' + ''                   -> Username or password is incorrect
+
+
+
+It is not only important to return
+a generic error message consistent for all
+attempts, but also not to crash app
+if user doesn't exist!
+
+
+
+
+2) Error reveals when user exists.
+
+
+public IActionResult Login(string username, string password)
+{
+    var user = _db.Users.FirstOrDefault(u => u.Username == username);
+
+    if (user.PasswordHash != Hash(password))                   <<< crash if user == null -> 500 Error
+        return Forbid("Username or password is incorrect");    <<< 403 Error
+
+    return SignIn(user);
+}
+
+
+
+Attacker tries "should_not_exist".
+
+url.com/Login?username=should_not_exist&password=dontknow
+
+App returns 500 error (app crashed).
+
+
+Attacker tries "admin".
+
+url.com/Login?username=admin&password=dontknow
+
+App returns 403 Error + "Username or password is incorrect".
+
+
+Attacker now knows that you have 'admin' user because
+non-existing user caused 500 error (crash)
+with Null reference error but 'admin' didn't.
+
+
+
+
+
+
+
+
+This is called "User Enumeration" or
+"Username Enumeration" attack.
+
+By analyzing different error responses (403 vs 500),
+attackers can determine which usernames exist in the system.
+This allows them to build a list of valid targets for
+password guessing, credential stuffing, or social
+engineering attacks.
+
+
+
+
+
+
+
+
+
+
+Fix:
+
+Always return same 403 Forbidden error and generic type!
+
+
+
+
+public IActionResult Login(string username, string password)
+{
+    var user = _db.Users.FirstOrDefault(u => u.Username == username);
+
+    if (user == null || user.PasswordHash != Hash(password))
+        return Forbid("Username or password is incorrect"); // Always 403
+
+    return SignIn(user);
+}
+
+
+
+Attacker:
+
+admin → 403
+noone → 403
+''    → 403
+
+No idea if these users exist or not.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Thank you!
