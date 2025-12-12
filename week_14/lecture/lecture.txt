@@ -1,0 +1,718 @@
+
+
+
+
+
+
+
+Plan
+
+
+JWT
+Security Concerns
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+JWT
+
+
+
+
+
+
+
+JWT = Json Web Token
+
+
+
+
+Why not cookies?
+
+
+
+Cookies or session cookies, which
+store your login information, have
+issue with scalability.
+
+A session cookie stores user cookie in the DB
+before sending it back to the user.
+
+If user next time tries to access the website,
+cookie is sent with the request to the server.
+
+And server compares it with the cookie in DB.
+
+
+This leads to scalability issue:
+
+If you have 1M users, you would need 1M records
+in your DB. This becomes your bottleneck.
+
+
+That's why JWT were created.
+
+JWT uses one secret to sign all tokens, which
+doesn't depend on the number of users.
+
+1 secret for 1 JWT
+1 secret for 1M JWT
+
+
+
+
+
+
+
+
+
+How JWT Works
+
+JWT consists of three parts:
+
+1) Header
+2) Payload
+3) Signature
+
+Each of these parts is base64 hashed and
+hashes are separated with dots (.)
+
+Final result of JWT is a long string of
+three hashes with dots between.
+
+
+
+
+
+Simplified example of JWT
+
+eyJh . zI1N . XVCa
+
+
+Here:
+
+eyJh = hashed header (token type & sign algorithm)
+zI1N = hashed payload (what we send)
+XVCa = hashed signature
+
+
+Or other way to show example:
+
+[hashed header] . [hashed payload] . [hashed signature]
+
+
+
+
+Base64
+
+
+
+
+Base64 is used to create hash for JWT.
+
+This algorithm is different from hashing functions
+we learned in the course.
+
+To recap - hashing function is one-way (you can't
+decrypt it back from hash), fixed-length and always the same
+result for same input.
+
+
+Base64 algorithm creates a "translation" or "encoding"
+of your data into a text.
+
+So you can have any type of data, like json, apply
+base64 hash function to it and get a text representation
+of your json.
+
+base64 produces variable length hash.
+
+You can decode (translate) hash back to original value.
+
+
+
+
+
+Why it exists?
+
+Convenient when you need to send data over network.
+
+
+
+Example
+
+[text] -> [base64 hash]
+
+"Hello"        -> "SGVsbG8="
+"Hello World!" -> "SGVsbG8gV29ybGQh"
+
+
+
+
+
+
+
+JWT parts
+
+
+- header
+- payload
+- signature
+
+
+JWT Header contains two things:
+
+1) Algorithm we are going to use to sign this token.
+2) Type of the token.
+
+
+JWT Header example
+
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+
+If we create a base64 hash of this json
+we get something like:
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+
+
+
+JWT Payload contains any custom data.
+
+For example, I want to identify you,
+as a student, I might have this as
+JWT payload:
+
+- user ID
+- name
+- role
+- course
+- date
+
+Example:
+
+{
+  "sub": "12345",           // Subject (user ID)
+  "name": "Alice Johnson",
+  "role": "Student",
+  "course": "C# Backend",
+  "iat": 1672531200,        // Issued at (timestamp)
+  "exp": 1672534800         // Expires in 1 hour
+}
+
+Base64:
+
+eyJzdWIiOiIxMjM0NSIsIm5hbWUiOiJBbGljZSBKb2huc
+29uIiwicm9sZSI6IlN0dWRlbnQiLCJjb3Vyc2UiOiJDIy
+BCYWNrZW5kIiwiaWF0IjoxNjcyNTMxMjAwLCJleHAiOjE
+2NzI1MzQ4MDB9
+
+
+
+
+JWT Signature
+
+To create a signature we are going
+to use a special algorithm, specified
+in JWT header (HS256). For this algorithm
+we need to pass two things:
+
+1. Payload (content which we are signing)
+2. Secret key
+
+
+
+Payload
+
+For the payload we get two base64 values
+from previous steps and concatenate them
+with a dot (.)
+
+Example:
+
+HEADER.PAYLOAD =
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.
+eyJzdWIiOiIxMjM0NSIsIm5hbWUiOiJBbGljZSBKb2huc
+29uIiwicm9sZSI6IlN0dWRlbnQiLCJjb3Vyc2UiOiJDIy
+BCYWNrZW5kIiwiaWF0IjoxNjcyNTMxMjAwLCJleHAiOjE
+2NzI1MzQ4MDB9"
+
+
+
+Secret
+
+For the secret you would use something,
+what only you know.
+
+Example
+
+secret_key =
+"MySuperSecretKey123!"
+
+
+Apply algorithm:
+
+HMACSHA256(HEADER.PAYLOAD, secret_key)
+
+
+
+Result (fixed-length):
+
+s9K3x8TJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+
+
+
+
+Final JWT Token:
+
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.  ← HEADER
+eyJzdWIiOiIxMjM0NSIsIm5hbWUiOiJBbGlj   ← PAYLOAD
+ZSBKb2huc29uIiwicm9sZSI6IlN0dWRlbnQi
+LCJjb3Vyc2UiOiJDIyBCYWNrZW5kIiwiaWF0
+IjoxNjcyNTMxMjAwLCJleHAiOjE2NzI1MzQ4
+MDB9.
+s9K3x8TJSMeKKF2QT4fwpMeJf36POk6yJV_a   ← SIGNATURE
+dQssw5c
+
+
+
+
+So how it works on the server end.
+
+
+1. You receive a JWT token.
+Token has three parts:
+
+- header
+- payload
+- signature
+
+2. You need to know which algorithm for
+signature was used.
+
+3. You get JWT "header" and translate it:
+
+JWT header (base64):
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+
+result (json):
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+
+From this we know which algorithm
+to use - HS256.
+
+4. Using HS256 algorithm we can create
+a signature.
+
+To create a signature on our end we need:
+
+- "header" + "payload" from JWT (you have it)
+- a secret key (you should have it)
+
+5. We create a signature:
+
+our_signature =
+HMACSHA256(HEADER.PAYLOAD, secret_key)
+
+6. Now we compare our signature
+with the one which came with JWT token.
+
+If signatures match, that confirms
+that JWT token is valid and signed with
+our secret key.
+
+We can trust its content.
+
+7. We decrypt the payload and read it:
+
+
+JWT payload (base64):
+eyJzdWIiOiIxMjM0NSIsIm5hbWUiOiJBbGlj
+ZSBKb2huc29uIiwicm9sZSI6IlN0dWRlbnQi
+LCJjb3Vyc2UiOiJDIyBCYWNrZW5kIiwiaWF0
+IjoxNjcyNTMxMjAwLCJleHAiOjE2NzI1MzQ4
+MDB9
+
+result (json):
+{
+  "sub": "12345",
+  "name": "Alice Johnson",
+  "role": "Student",
+  "course": "C# Backend",
+  "iat": 1672531200,
+  "exp": 1672534800
+}
+
+
+
+During verification process of JWT
+we trust JWT payload because we
+were able to verify the signature on JWT
+and that it wasn't expired.
+
+
+
+
+
+
+
+
+
+
+
+How JWT works?
+
+
+Real-life scenario:
+
+
+
+User: "Hi, I'm Alice, my password: 123, please, register me."
+
+Server: "Done! Here's your JWT token"
+
+[next day]
+
+User: "I want to see my profile."
+
+[shows JWT]
+
+Server: "Let me verify this signature..."
+
+[signature verified]
+
+Server: "OK Alice, here's your profile!"
+
+
+
+
+
+
+
+
+
+
+
+
+Hackers trying to tamper JWT
+
+
+
+
+
+
+
+Attempt #1
+
+
+
+
+Let's assume hacker logged in
+into our system as a regular user.
+
+They have JWT for "user".
+
+Simplified JWT:
+
+A.B.C
+
+Here:
+
+A - header
+B - payload
+C - signature
+
+The payload will be something like:
+
+B:
+{
+  "sub": "12345",
+  "name": "Alice Johnson",
+  "role": "user",     <<<< just a user
+  "iat": 1672531200,
+  "exp": 1672534800
+}
+
+
+
+If they want to impersonate themselves
+as "admin", they can try to change "role":
+
+
+D
+{
+  "sub": "12345",
+  "name": "Alice Johnson",
+  "role": "admin",     <<<< changed user
+  "iat": 1672531200,
+  "exp": 1672534800
+}
+
+
+After that they would create a base64 of this payload.
+
+As they don't know the secret key, they can't update
+the signature of JWT token.
+
+So they will have this JWT:
+
+A.D.C
+
+Instead of: A.B.C
+
+They will replace original payload "B" with new "D".
+
+
+If server receives JWT token A.D.C
+and generates signature, it will be:
+
+A.D + secret -> signature E (modified payload, what server generates)
+A.B + secret -> signature C (original payload, what server got as part of JWT)
+
+E ≠ C.
+
+So at this moment server will not trust JWT payload.
+Hacker attempt failed.
+
+
+
+
+
+
+
+Attempt #2
+
+
+Hacker will try to update to "admin"
+and guess the secret key.
+
+Original JWT:
+
+A.B.C
+
+Modified JWT
+
+A.D.E
+
+
+Hacker will try to brute force a secret key,
+trying different secret keys which will result
+in the same signature:
+
+A.B + secret1 -> is it C? No
+A.B + secret2 -> is it C? No
+A.B + secret3 -> is it C? No
+...
+
+
+HMAC-SHA256 has 2²⁵⁶ possible outputs
+That's more than atoms in universe.
+
+It is impossible to guess the secret key.
+
+But if you are using a weak secret key
+or one from a list of popular passwords,
+then hackers can succeed in guessing.
+
+
+
+
+
+
+
+Attempt #3
+
+
+Hacker want to get access to user's account:
+
+Replay Attack
+
+
+They steal valid token, try to use it before expiration:
+
+Valid token stolen via:
+
+1. Network sniffing (no HTTPS)
+2. XSS attack
+3. Malicious browser extension
+
+
+Hacker replays same token,
+if it was valid (not expired), they
+would get access into user's account.
+
+
+
+Prevention:
+
+- Short token expiration (1 hour)
+- Rotate keys
+
+
+
+
+
+
+
+
+Short token expiration.
+
+
+If user logged in 1h ago and JWT has expired,
+the server will ask user to re-login and
+issue a new JWT.
+
+
+
+
+
+Keys rotation.
+
+
+Secret key, used for signature generation,
+should be regularly changed.
+
+For example,
+
+- After 1 month server will update secret.
+- It will keep old, previous key as well.
+- Any new JWT will be generated with new secret.
+- Any old JWT sent to the server will be required to regenerate.
+
+
+
+Scenario:
+
+User logs-in.
+Server uses "secret_1" and generates JWT
+30 days passes.
+Server creates new "secret_2" for JWT.
+User logs-in with old JWT.
+Server checks:
+- is signature valid with "secret_2" (new secret)? - No.
+- is signature valid with "secret_1" (old secret)? - Yes. Ask user to re-login.
+User logs-in.
+Server uses "secret_2" (new) and generates JWT
+
+
+
+
+Things to be aware of:
+
+
+1. JWT uses one secret on the server
+side to sign all JWT tokens for all users.
+
+This solves the issue with scalability for cookies.
+
+But, your secret must be strong!
+
+
+2. Payload sent with JWT is not encrypted
+and sent in base64 format, which can be easily
+"translated" back to original text.
+
+Do NOT store sensitive data in payload of JWT!
+
+
+
+
+
+
+
+
+
+
+
+
+
+You can check JWT online:
+
+
+https://jwt.io
+
+
+
+
+
+Paste and decode your token there.
+Or generate your token there.
+
+
+
+
+Demo:
+
+
+
+Header:
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+
+Payload:
+{
+  "sub": "1234567890",
+  "name": "Andrei Navumau",
+  "admin": true,
+  "iat": 1516239022
+}
+
+Secret:
+a-string-secret-at-least-256-bits-long
+
+
+
+
+Result JWT:
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFuZHJlaSBOYXZ1bWF1IiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.7VmOC8HL3Gxyp8o6iIcxCtGl7eClogojVOPb5xPMVR4
+
+
+
+Now let's imagine hacker has stolen my JWT,
+they don't know the secret.
+
+They have:
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkFuZHJlaSBOYXZ1bWF1IiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.7VmOC8HL3Gxyp8o6iIcxCtGl7eClogojVOPb5xPMVR4
+
+They can decode and see:
+
+Header
+Payload
+Signature (signature verification failed)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Thank you.
